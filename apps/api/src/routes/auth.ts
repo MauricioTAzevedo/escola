@@ -49,15 +49,6 @@ export async function authRoutes(fastify: FastifyInstance) {
       },
     });
 
-    // Auto-enroll student into existing subjects
-    if (role === 'STUDENT') {
-      const subjects = await prisma.subject.findMany();
-      if (subjects.length > 0) {
-        await prisma.classEnrollment.createMany({
-          data: subjects.map((sub) => ({ studentId: user.id, subjectId: sub.id })),
-        });
-      }
-    }
 
     const userPayload = {
       userId: user.id,

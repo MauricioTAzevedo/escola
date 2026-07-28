@@ -3,7 +3,6 @@ import { authRoutes } from './routes/auth';
 import { subjectRoutes } from './routes/subjects';
 import { kcRoutes } from './routes/kcs';
 import { questionRoutes } from './routes/questions';
-import { studyRoutes } from './routes/study';
 import { aiRoutes } from './routes/ai';
 import { teacherRoutes } from './routes/teacher';
 import { adminRoutes } from './routes/admin';
@@ -27,10 +26,10 @@ export function buildApp() {
   app.register(subjectRoutes, { prefix: '/api/subjects' });
   app.register(kcRoutes, { prefix: '/api/kcs' });
   app.register(questionRoutes, { prefix: '/api/questions' });
-  app.register(studyRoutes, { prefix: '/api/study' });
   app.register(aiRoutes, { prefix: '/api/ai' });
   app.register(teacherRoutes, { prefix: '/api/teacher' });
   app.register(adminRoutes, { prefix: '/api/admin' });
+
 
   app.get('/health', async () => {
     return { status: 'ok', service: 'Adaptive Tutoring API', version: '1.0.0' };

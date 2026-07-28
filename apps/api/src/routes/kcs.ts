@@ -51,25 +51,6 @@ export async function kcRoutes(fastify: FastifyInstance) {
       data: parseResult.data,
     });
 
-    // Create initial StudentMastery for all enrolled students in this subject
-    const enrollments = await prisma.classEnrollment.findMany({
-      where: { subjectId: kc.subjectId },
-    });
-
-    if (enrollments.length > 0) {
-      await prisma.studentMastery.createMany({
-        data: enrollments.map((enr) => ({
-          studentId: enr.studentId,
-          kcId: kc.id,
-          pMastery: kc.defaultPInit,
-          pInit: kc.defaultPInit,
-          pTransit: kc.defaultPTransit,
-          pSlip: kc.defaultPSlip,
-          pGuess: kc.defaultPGuess,
-        })),
-      });
-    }
-
     return reply.status(201).send(kc);
   });
 
