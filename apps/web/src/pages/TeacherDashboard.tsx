@@ -53,7 +53,8 @@ export function TeacherDashboard() {
 
   const { data, isLoading, isError } = useQuery<AnalyticsResponse>({
     queryKey: ['teacher-analytics', selectedSubjectId],
-    queryFn: () => apiFetch(`/teacher/analytics${selectedSubjectId ? `?subjectId=${selectedSubjectId}` : ''}`),
+    queryFn: () =>
+      apiFetch(`/teacher/analytics${selectedSubjectId ? `?subjectId=${selectedSubjectId}` : ''}`),
   });
 
   const activeSubId = selectedSubjectId || (data ? data.activeSubjectId : '');
@@ -79,7 +80,9 @@ export function TeacherDashboard() {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16 flex flex-col items-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4" />
-        <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Carregando métricas...</p>
+        <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+          Carregando métricas...
+        </p>
       </div>
     );
   }
@@ -88,19 +91,41 @@ export function TeacherDashboard() {
     return (
       <div className="max-w-xl mx-auto px-4 py-12 text-center">
         <Card className="p-8">
-          <p className="text-sm text-slate-600 dark:text-slate-400">Não foi possível carregar o dashboard.</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Não foi possível carregar o dashboard.
+          </p>
         </Card>
       </div>
     );
   }
 
-  const { subjects, totalQuestions, totalKcs, aiGeneratedCount, manualCount, difficultyStats, kcCoverage } = data;
+  const {
+    subjects,
+    totalQuestions,
+    totalKcs,
+    aiGeneratedCount,
+    manualCount,
+    difficultyStats,
+    kcCoverage,
+  } = data;
 
   // Difficulty bar chart data
   const difficultyChartData = [
-    { name: 'Fácil', value: difficultyStats.EASY, pct: totalQuestions ? Math.round((difficultyStats.EASY / totalQuestions) * 100) : 0 },
-    { name: 'Médio', value: difficultyStats.MEDIUM, pct: totalQuestions ? Math.round((difficultyStats.MEDIUM / totalQuestions) * 100) : 0 },
-    { name: 'Difícil', value: difficultyStats.HARD, pct: totalQuestions ? Math.round((difficultyStats.HARD / totalQuestions) * 100) : 0 },
+    {
+      name: 'Fácil',
+      value: difficultyStats.EASY,
+      pct: totalQuestions ? Math.round((difficultyStats.EASY / totalQuestions) * 100) : 0,
+    },
+    {
+      name: 'Médio',
+      value: difficultyStats.MEDIUM,
+      pct: totalQuestions ? Math.round((difficultyStats.MEDIUM / totalQuestions) * 100) : 0,
+    },
+    {
+      name: 'Difícil',
+      value: difficultyStats.HARD,
+      pct: totalQuestions ? Math.round((difficultyStats.HARD / totalQuestions) * 100) : 0,
+    },
   ];
 
   // KC coverage bar chart - top 8 for readability
@@ -121,7 +146,9 @@ export function TeacherDashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Visão Geral do Banco de Questões</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+            Visão Geral do Banco de Questões
+          </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             Distribuição por dificuldade, cobertura de componentes e métricas gerais.
           </p>
@@ -133,7 +160,9 @@ export function TeacherDashboard() {
             className="p-2.5 border border-slate-300 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 font-medium"
           >
             {subjects.map((sub) => (
-              <option key={sub.id} value={sub.id}>{sub.name}</option>
+              <option key={sub.id} value={sub.id}>
+                {sub.name}
+              </option>
             ))}
           </select>
           <Button variant="outline" size="md" onClick={handleDownloadCsv}>
@@ -148,8 +177,12 @@ export function TeacherDashboard() {
         <Card className="p-5">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Total de Questões</p>
-              <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{totalQuestions}</p>
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+                Total de Questões
+              </p>
+              <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+                {totalQuestions}
+              </p>
             </div>
             <div className="p-2.5 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 rounded-xl">
               <HelpCircle className="h-5 w-5" />
@@ -157,14 +190,18 @@ export function TeacherDashboard() {
           </div>
           <div className="mt-3 flex items-center space-x-1 text-xs text-slate-500 dark:text-slate-400">
             <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
-            <span>{aiGeneratedCount} via IA · {manualCount} manuais</span>
+            <span>
+              {aiGeneratedCount} via IA · {manualCount} manuais
+            </span>
           </div>
         </Card>
 
         <Card className="p-5">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Comp. de Conhecimento</p>
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+                Comp. de Conhecimento
+              </p>
               <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{totalKcs}</p>
             </div>
             <div className="p-2.5 bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 rounded-xl">
@@ -172,30 +209,41 @@ export function TeacherDashboard() {
             </div>
           </div>
           <div className="mt-3 flex items-center space-x-1 text-xs text-slate-500 dark:text-slate-400">
-            <span>{kcsWithQuestions} com questões · {totalKcs - kcsWithQuestions} sem</span>
+            <span>
+              {kcsWithQuestions} com questões · {totalKcs - kcsWithQuestions} sem
+            </span>
           </div>
         </Card>
 
         <Card className="p-5">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Geradas por IA</p>
-              <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{aiGeneratedCount}</p>
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+                Geradas por IA
+              </p>
+              <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+                {aiGeneratedCount}
+              </p>
             </div>
             <div className="p-2.5 bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-xl">
               <Sparkles className="h-5 w-5" />
             </div>
           </div>
           <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">
-            {totalQuestions > 0 ? Math.round((aiGeneratedCount / totalQuestions) * 100) : 0}% do total
+            {totalQuestions > 0 ? Math.round((aiGeneratedCount / totalQuestions) * 100) : 0}% do
+            total
           </div>
         </Card>
 
         <Card className="p-5">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Cobertura de KCs</p>
-              <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{coveragePct}%</p>
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+                Cobertura de KCs
+              </p>
+              <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+                {coveragePct}%
+              </p>
             </div>
             <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-xl">
               <Target className="h-5 w-5" />
@@ -209,14 +257,15 @@ export function TeacherDashboard() {
                 style={{ width: `${coveragePct}%` }}
               />
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{kcsWithQuestions}/{totalKcs} KCs cobertos</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              {kcsWithQuestions}/{totalKcs} KCs cobertos
+            </p>
           </div>
         </Card>
       </div>
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
         {/* Difficulty Bar Chart */}
         <Card>
           <CardHeader>
@@ -229,8 +278,14 @@ export function TeacherDashboard() {
           <CardContent className="h-64">
             {totalQuestions > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={difficultyChartData} margin={{ top: 16, right: 16, left: -8, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" />
+                <BarChart
+                  data={difficultyChartData}
+                  margin={{ top: 16, right: 16, left: -8, bottom: 0 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    className="stroke-slate-200 dark:stroke-slate-700"
+                  />
                   <XAxis
                     dataKey="name"
                     tick={{ fontSize: 12, fill: 'currentColor' }}
@@ -294,7 +349,11 @@ export function TeacherDashboard() {
                   layout="vertical"
                   margin={{ top: 0, right: 48, left: 0, bottom: 0 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-slate-200 dark:stroke-slate-700" />
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    horizontal={false}
+                    className="stroke-slate-200 dark:stroke-slate-700"
+                  />
                   <XAxis
                     type="number"
                     allowDecimals={false}
@@ -343,9 +402,13 @@ export function TeacherDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Detalhamento de Cobertura por KC</CardTitle>
-              <CardDescription>Todos os componentes e suas respectivas quantidades de questões</CardDescription>
+              <CardDescription>
+                Todos os componentes e suas respectivas quantidades de questões
+              </CardDescription>
             </div>
-            <Badge variant={coveragePct >= 80 ? 'success' : coveragePct >= 50 ? 'warning' : 'danger'}>
+            <Badge
+              variant={coveragePct >= 80 ? 'success' : coveragePct >= 50 ? 'warning' : 'danger'}
+            >
               {coveragePct}% de cobertura
             </Badge>
           </div>
@@ -353,15 +416,21 @@ export function TeacherDashboard() {
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-72 overflow-y-auto pr-2">
             {kcCoverage.map((kc) => {
-              const pct = totalQuestions > 0 ? Math.round((kc.questionCount / totalQuestions) * 100) : 0;
+              const pct =
+                totalQuestions > 0 ? Math.round((kc.questionCount / totalQuestions) * 100) : 0;
               return (
                 <div
                   key={kc.kcId}
                   className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 space-y-2"
                 >
                   <div className="flex justify-between items-start gap-2">
-                    <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-tight">{kc.kcName}</span>
-                    <Badge variant={kc.questionCount > 0 ? 'success' : 'warning'} className="flex-shrink-0">
+                    <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-tight">
+                      {kc.kcName}
+                    </span>
+                    <Badge
+                      variant={kc.questionCount > 0 ? 'success' : 'warning'}
+                      className="flex-shrink-0"
+                    >
                       {kc.questionCount}
                     </Badge>
                   </div>
@@ -372,7 +441,9 @@ export function TeacherDashboard() {
                     />
                   </div>
                   <p className="text-[10px] text-slate-400 dark:text-slate-500">
-                    {kc.questionCount === 0 ? 'Sem questões — precisa de atenção' : `${pct}% das questões totais`}
+                    {kc.questionCount === 0
+                      ? 'Sem questões — precisa de atenção'
+                      : `${pct}% das questões totais`}
                   </p>
                 </div>
               );

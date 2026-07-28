@@ -12,7 +12,21 @@ import { FormattedText } from '../components/ui/FormattedText';
 import { AiQuestionGeneratorModal } from '../components/AiQuestionGeneratorModal';
 import { ExamPdfModal } from '../components/ExamPdfModal';
 import { InstitutionSettingsModal } from '../components/InstitutionSettingsModal';
-import { Plus, Trash2, Sparkles, BookOpen, Layers, HelpCircle, CheckCircle2, Pencil, FileText, Copy, Search, X as XIcon, Building2 } from 'lucide-react';
+import {
+  Plus,
+  Trash2,
+  Sparkles,
+  BookOpen,
+  Layers,
+  HelpCircle,
+  CheckCircle2,
+  Pencil,
+  FileText,
+  Copy,
+  Search,
+  X as XIcon,
+  Building2,
+} from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 
 export function TeacherSubjects() {
@@ -33,7 +47,9 @@ export function TeacherSubjects() {
   const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
   const [selectedKcForQuestion, setSelectedKcForQuestion] = useState('');
   const [questionStatement, setQuestionStatement] = useState('');
-  const [questionDifficulty, setQuestionDifficulty] = useState<'EASY' | 'MEDIUM' | 'HARD'>('MEDIUM');
+  const [questionDifficulty, setQuestionDifficulty] = useState<'EASY' | 'MEDIUM' | 'HARD'>(
+    'MEDIUM'
+  );
   const [opt1, setOpt1] = useState('');
   const [opt2, setOpt2] = useState('');
   const [opt3, setOpt3] = useState('');
@@ -82,7 +98,8 @@ export function TeacherSubjects() {
 
   // Mutations
   const createSubjectMutation = useMutation({
-    mutationFn: (body: any) => apiFetch('/subjects', { method: 'POST', body: JSON.stringify(body) }),
+    mutationFn: (body: any) =>
+      apiFetch('/subjects', { method: 'POST', body: JSON.stringify(body) }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subjects'] });
       setIsSubjectModalOpen(false);
@@ -102,7 +119,8 @@ export function TeacherSubjects() {
   });
 
   const createQuestionMutation = useMutation({
-    mutationFn: (body: any) => apiFetch('/questions', { method: 'POST', body: JSON.stringify(body) }),
+    mutationFn: (body: any) =>
+      apiFetch('/questions', { method: 'POST', body: JSON.stringify(body) }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['questions', currentSubjectId] });
       closeQuestionModal();
@@ -202,7 +220,11 @@ export function TeacherSubjects() {
 
   const handleCreateKc = (e: React.FormEvent) => {
     e.preventDefault();
-    createKcMutation.mutate({ subjectId: currentSubjectId, name: newKcName, description: newKcDesc });
+    createKcMutation.mutate({
+      subjectId: currentSubjectId,
+      name: newKcName,
+      description: newKcDesc,
+    });
   };
 
   const handleSaveQuestion = (e: React.FormEvent) => {
@@ -237,7 +259,9 @@ export function TeacherSubjects() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Gestão de Conteúdo e Questões</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+            Gestão de Conteúdo e Questões
+          </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             Cadastre disciplinas, defina Componentes de Conhecimento e gerencie o banco de questões.
           </p>
@@ -329,7 +353,11 @@ export function TeacherSubjects() {
       {activeTab === 'kcs' && (
         <div className="space-y-4">
           <div className="flex justify-end space-x-3">
-            <Button variant="primary" onClick={() => setIsKcModalOpen(true)} disabled={!currentSubjectId}>
+            <Button
+              variant="primary"
+              onClick={() => setIsKcModalOpen(true)}
+              disabled={!currentSubjectId}
+            >
               <Plus className="h-4 w-4 mr-2" />
               Adicionar Componente (KC)
             </Button>
@@ -404,7 +432,10 @@ export function TeacherSubjects() {
                 className="w-full pl-9 pr-8 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
               />
               {searchText && (
-                <button onClick={() => setSearchText('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                <button
+                  onClick={() => setSearchText('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
                   <XIcon className="h-4 w-4" />
                 </button>
               )}
@@ -413,7 +444,9 @@ export function TeacherSubjects() {
             {/* Filter row */}
             <div className="flex flex-wrap gap-3 items-center">
               <div className="flex items-center space-x-2">
-                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">KC:</label>
+                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                  KC:
+                </label>
                 <select
                   value={filterKcId}
                   onChange={(e) => setFilterKcId(e.target.value)}
@@ -421,13 +454,17 @@ export function TeacherSubjects() {
                 >
                   <option value="ALL">Todos</option>
                   {kcs.map((kc) => (
-                    <option key={kc.id} value={kc.id}>{kc.name}</option>
+                    <option key={kc.id} value={kc.id}>
+                      {kc.name}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div className="flex items-center space-x-2">
-                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Dificuldade:</label>
+                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                  Dificuldade:
+                </label>
                 <select
                   value={filterDifficulty}
                   onChange={(e) => setFilterDifficulty(e.target.value)}
@@ -441,7 +478,9 @@ export function TeacherSubjects() {
               </div>
 
               <div className="flex items-center space-x-2">
-                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Origem:</label>
+                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                  Origem:
+                </label>
                 <select
                   value={filterSource}
                   onChange={(e) => setFilterSource(e.target.value)}
@@ -458,9 +497,17 @@ export function TeacherSubjects() {
                 <span className="text-xs text-slate-500 dark:text-slate-400">
                   {filteredQuestions.length} de {questions.length} questão(ões)
                 </span>
-                {(searchText || filterKcId !== 'ALL' || filterDifficulty !== 'ALL' || filterSource !== 'ALL') && (
+                {(searchText ||
+                  filterKcId !== 'ALL' ||
+                  filterDifficulty !== 'ALL' ||
+                  filterSource !== 'ALL') && (
                   <button
-                    onClick={() => { setSearchText(''); setFilterKcId('ALL'); setFilterDifficulty('ALL'); setFilterSource('ALL'); }}
+                    onClick={() => {
+                      setSearchText('');
+                      setFilterKcId('ALL');
+                      setFilterDifficulty('ALL');
+                      setFilterSource('ALL');
+                    }}
                     className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
                   >
                     Limpar filtros
@@ -473,7 +520,9 @@ export function TeacherSubjects() {
           {/* Question cards */}
           <div className="space-y-4">
             {filteredQuestions.length === 0 && (
-              <div className="text-center py-10 text-sm text-slate-400">Nenhuma questão encontrada.</div>
+              <div className="text-center py-10 text-sm text-slate-400">
+                Nenhuma questão encontrada.
+              </div>
             )}
             {filteredQuestions.map((q) => (
               <Card key={q.id}>
@@ -508,7 +557,9 @@ export function TeacherSubjects() {
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        if (window.confirm('Tem certeza de que deseja excluir esta questão do banco?')) {
+                        if (
+                          window.confirm('Tem certeza de que deseja excluir esta questão do banco?')
+                        ) {
                           deleteQuestionMutation.mutate(q.id);
                         }
                       }}
@@ -577,15 +628,34 @@ export function TeacherSubjects() {
         createPortal(
           <div className="fixed inset-0 z-[9999] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-md w-full space-y-4 border border-slate-200 dark:border-slate-800 shadow-2xl">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Nova Disciplina</h3>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                Nova Disciplina
+              </h3>
               <form onSubmit={handleCreateSubject} className="space-y-3">
-                <Input label="Nome da Disciplina" required value={newSubName} onChange={(e) => setNewSubName(e.target.value)} />
-                <Input label="Descrição" value={newSubDesc} onChange={(e) => setNewSubDesc(e.target.value)} />
+                <Input
+                  label="Nome da Disciplina"
+                  required
+                  value={newSubName}
+                  onChange={(e) => setNewSubName(e.target.value)}
+                />
+                <Input
+                  label="Descrição"
+                  value={newSubDesc}
+                  onChange={(e) => setNewSubDesc(e.target.value)}
+                />
                 <div className="flex justify-end space-x-2 pt-2">
-                  <Button variant="ghost" type="button" onClick={() => setIsSubjectModalOpen(false)}>
+                  <Button
+                    variant="ghost"
+                    type="button"
+                    onClick={() => setIsSubjectModalOpen(false)}
+                  >
                     Cancelar
                   </Button>
-                  <Button variant="primary" type="submit" isLoading={createSubjectMutation.isPending}>
+                  <Button
+                    variant="primary"
+                    type="submit"
+                    isLoading={createSubjectMutation.isPending}
+                  >
                     Salvar
                   </Button>
                 </div>
@@ -600,10 +670,21 @@ export function TeacherSubjects() {
         createPortal(
           <div className="fixed inset-0 z-[9999] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-md w-full space-y-4 border border-slate-200 dark:border-slate-800 shadow-2xl">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Novo Componente de Conhecimento (KC)</h3>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                Novo Componente de Conhecimento (KC)
+              </h3>
               <form onSubmit={handleCreateKc} className="space-y-3">
-                <Input label="Nome do KC" required value={newKcName} onChange={(e) => setNewKcName(e.target.value)} />
-                <Input label="Descrição" value={newKcDesc} onChange={(e) => setNewKcDesc(e.target.value)} />
+                <Input
+                  label="Nome do KC"
+                  required
+                  value={newKcName}
+                  onChange={(e) => setNewKcName(e.target.value)}
+                />
+                <Input
+                  label="Descrição"
+                  value={newKcDesc}
+                  onChange={(e) => setNewKcDesc(e.target.value)}
+                />
                 <div className="flex justify-end space-x-2 pt-2">
                   <Button variant="ghost" type="button" onClick={() => setIsKcModalOpen(false)}>
                     Cancelar
@@ -627,14 +708,14 @@ export function TeacherSubjects() {
                 <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
                   {editingQuestion ? '✏️ Editar Questão' : 'Cadastrar Nova Questão'}
                 </h3>
-                {editingQuestion && (
-                  <Badge variant="warning">Editando</Badge>
-                )}
+                {editingQuestion && <Badge variant="warning">Editando</Badge>}
               </div>
               <form onSubmit={handleSaveQuestion} className="space-y-3">
                 {/* KC selector */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Componente de Conhecimento (KC):</label>
+                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    Componente de Conhecimento (KC):
+                  </label>
                   <select
                     value={selectedKcForQuestion}
                     onChange={(e) => setSelectedKcForQuestion(e.target.value)}
@@ -650,7 +731,9 @@ export function TeacherSubjects() {
 
                 {/* Difficulty */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Nível de Dificuldade:</label>
+                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    Nível de Dificuldade:
+                  </label>
                   <select
                     value={questionDifficulty}
                     onChange={(e) => setQuestionDifficulty(e.target.value as any)}
@@ -679,16 +762,40 @@ export function TeacherSubjects() {
 
                 {/* Options */}
                 <div className="space-y-2 pt-2">
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">Opções de Múltipla Escolha:</label>
-                  <Input label="Opção 1 (opt1)" required value={opt1} onChange={(e) => setOpt1(e.target.value)} />
-                  <Input label="Opção 2 (opt2)" required value={opt2} onChange={(e) => setOpt2(e.target.value)} />
-                  <Input label="Opção 3 (opt3)" required value={opt3} onChange={(e) => setOpt3(e.target.value)} />
-                  <Input label="Opção 4 (opt4)" required value={opt4} onChange={(e) => setOpt4(e.target.value)} />
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Opções de Múltipla Escolha:
+                  </label>
+                  <Input
+                    label="Opção 1 (opt1)"
+                    required
+                    value={opt1}
+                    onChange={(e) => setOpt1(e.target.value)}
+                  />
+                  <Input
+                    label="Opção 2 (opt2)"
+                    required
+                    value={opt2}
+                    onChange={(e) => setOpt2(e.target.value)}
+                  />
+                  <Input
+                    label="Opção 3 (opt3)"
+                    required
+                    value={opt3}
+                    onChange={(e) => setOpt3(e.target.value)}
+                  />
+                  <Input
+                    label="Opção 4 (opt4)"
+                    required
+                    value={opt4}
+                    onChange={(e) => setOpt4(e.target.value)}
+                  />
                 </div>
 
                 {/* Correct answer */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Opção Correta:</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Opção Correta:
+                  </label>
                   <select
                     value={correctOpt}
                     onChange={(e) => setCorrectOpt(e.target.value)}

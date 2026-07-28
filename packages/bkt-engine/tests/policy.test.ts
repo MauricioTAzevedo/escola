@@ -11,7 +11,7 @@ describe('Adaptive & Random Question Selection Policies', () => {
   const mockMasteries: StudentKCState[] = [
     { kcId: 'kc-low', pMastery: 0.15 },
     { kcId: 'kc-struggle', pMastery: 0.55 }, // Productive struggle band: 0.40 - 0.70
-    { kcId: 'kc-mastered', pMastery: 0.90 },
+    { kcId: 'kc-mastered', pMastery: 0.9 },
   ];
 
   it('AdaptivePolicy prioritizes questions in the productive struggle band', () => {

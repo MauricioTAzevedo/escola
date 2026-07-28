@@ -17,15 +17,25 @@ export function Card({ children, className = '', ...props }: CardProps) {
 }
 
 export function CardHeader({ children, className = '' }: CardProps) {
-  return <div className={`p-6 border-b border-slate-100 dark:border-slate-800/80 ${className}`}>{children}</div>;
+  return (
+    <div className={`p-6 border-b border-slate-100 dark:border-slate-800/80 ${className}`}>
+      {children}
+    </div>
+  );
 }
 
 export function CardTitle({ children, className = '' }: CardProps) {
-  return <h3 className={`text-lg font-bold text-slate-900 dark:text-slate-100 ${className}`}>{children}</h3>;
+  return (
+    <h3 className={`text-lg font-bold text-slate-900 dark:text-slate-100 ${className}`}>
+      {children}
+    </h3>
+  );
 }
 
 export function CardDescription({ children, className = '' }: CardProps) {
-  return <p className={`text-xs text-slate-500 dark:text-slate-400 mt-1 ${className}`}>{children}</p>;
+  return (
+    <p className={`text-xs text-slate-500 dark:text-slate-400 mt-1 ${className}`}>{children}</p>
+  );
 }
 
 export function CardContent({ children, className = '' }: CardProps) {
@@ -33,5 +43,9 @@ export function CardContent({ children, className = '' }: CardProps) {
 }
 
 export function CardFooter({ children, className = '' }: CardProps) {
-  return <div className={`p-6 pt-0 border-t border-slate-100 dark:border-slate-800 ${className}`}>{children}</div>;
+  return (
+    <div className={`p-6 pt-0 border-t border-slate-100 dark:border-slate-800 ${className}`}>
+      {children}
+    </div>
+  );
 }

@@ -73,7 +73,9 @@ export async function subjectRoutes(fastify: FastifyInstance) {
   fastify.post('/', { preHandler: [requireRole(['TEACHER', 'ADMIN'])] }, async (request, reply) => {
     const parseResult = CreateSubjectSchema.safeParse(request.body);
     if (!parseResult.success) {
-      return reply.status(400).send({ error: 'Dados inválidos', details: parseResult.error.flatten().fieldErrors });
+      return reply
+        .status(400)
+        .send({ error: 'Dados inválidos', details: parseResult.error.flatten().fieldErrors });
     }
 
     const { name, description } = parseResult.data;
@@ -87,40 +89,58 @@ export async function subjectRoutes(fastify: FastifyInstance) {
       },
     });
 
+    // Auto-enroll existing students in the new subject
+    const students = await prisma.user.findMany({ where: { role: 'STUDENT' } });
+    if (students.length > 0) {
+      await prisma.classEnrollment.createMany({
+        data: students.map((st) => ({ studentId: st.id, subjectId: subject.id })),
+      });
+    }
+
     return reply.status(201).send(subject);
   });
 
   // PUT /api/subjects/:id (Update subject - Teacher/Admin)
-  fastify.put('/:id', { preHandler: [requireRole(['TEACHER', 'ADMIN'])] }, async (request, reply) => {
-    const { id } = request.params as { id: string };
-    const parseResult = UpdateSubjectSchema.safeParse(request.body);
-    if (!parseResult.success) {
-      return reply.status(400).send({ error: 'Dados inválidos', details: parseResult.error.flatten().fieldErrors });
+  fastify.put(
+    '/:id',
+    { preHandler: [requireRole(['TEACHER', 'ADMIN'])] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const parseResult = UpdateSubjectSchema.safeParse(request.body);
+      if (!parseResult.success) {
+        return reply
+          .status(400)
+          .send({ error: 'Dados inválidos', details: parseResult.error.flatten().fieldErrors });
+      }
+
+      const existing = await prisma.subject.findUnique({ where: { id } });
+      if (!existing) {
+        return reply.status(404).send({ error: 'Disciplina não encontrada' });
+      }
+
+      const updated = await prisma.subject.update({
+        where: { id },
+        data: parseResult.data,
+      });
+
+      return reply.send(updated);
     }
-
-    const existing = await prisma.subject.findUnique({ where: { id } });
-    if (!existing) {
-      return reply.status(404).send({ error: 'Disciplina não encontrada' });
-    }
-
-    const updated = await prisma.subject.update({
-      where: { id },
-      data: parseResult.data,
-    });
-
-    return reply.send(updated);
-  });
+  );
 
   // DELETE /api/subjects/:id (Delete subject - Teacher/Admin)
-  fastify.delete('/:id', { preHandler: [requireRole(['TEACHER', 'ADMIN'])] }, async (request, reply) => {
-    const { id } = request.params as { id: string };
+  fastify.delete(
+    '/:id',
+    { preHandler: [requireRole(['TEACHER', 'ADMIN'])] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
 
-    const existing = await prisma.subject.findUnique({ where: { id } });
-    if (!existing) {
-      return reply.status(404).send({ error: 'Disciplina não encontrada' });
+      const existing = await prisma.subject.findUnique({ where: { id } });
+      if (!existing) {
+        return reply.status(404).send({ error: 'Disciplina não encontrada' });
+      }
+
+      await prisma.subject.delete({ where: { id } });
+      return reply.send({ message: 'Disciplina removida com sucesso' });
     }
-
-    await prisma.subject.delete({ where: { id } });
-    return reply.send({ message: 'Disciplina removida com sucesso' });
-  });
+  );
 }

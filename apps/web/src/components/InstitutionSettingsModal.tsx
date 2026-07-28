@@ -69,11 +69,18 @@ export function InstitutionSettingsModal({ isOpen, onClose }: Props) {
               <Building2 className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Configurações da Instituição</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Aparece automaticamente no cabeçalho de todas as provas PDF</p>
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                Configurações da Instituição
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Aparece automaticamente no cabeçalho de todas as provas PDF
+              </p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -82,7 +89,9 @@ export function InstitutionSettingsModal({ isOpen, onClose }: Props) {
         <div className="p-6 space-y-5">
           {/* Logo */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">Logo da Escola</label>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
+              Logo da Escola
+            </label>
             <div className="flex items-center gap-4">
               {settings.logoDataUrl ? (
                 <div className="relative">
@@ -106,9 +115,16 @@ export function InstitutionSettingsModal({ isOpen, onClose }: Props) {
               <label className="cursor-pointer flex items-center space-x-2 px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                 <Upload className="h-4 w-4" />
                 <span>{settings.logoDataUrl ? 'Trocar Logo' : 'Carregar Logo'}</span>
-                <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleLogoUpload}
+                />
               </label>
-              <p className="text-xs text-slate-400 dark:text-slate-500">PNG, JPG ou SVG. Máx. 2MB.</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500">
+                PNG, JPG ou SVG. Máx. 2MB.
+              </p>
             </div>
           </div>
 
@@ -143,17 +159,23 @@ export function InstitutionSettingsModal({ isOpen, onClose }: Props) {
           {/* Preview */}
           {(settings.schoolName || settings.logoDataUrl) && (
             <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/40">
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wide">Preview do Cabeçalho:</p>
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wide">
+                Preview do Cabeçalho:
+              </p>
               <div className="flex items-center space-x-3">
                 {settings.logoDataUrl && (
                   <img src={settings.logoDataUrl} alt="Logo" className="h-10 w-10 object-contain" />
                 )}
                 <div>
                   {settings.schoolName && (
-                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{settings.schoolName}</p>
+                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                      {settings.schoolName}
+                    </p>
                   )}
                   {settings.schoolSubtitle && (
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{settings.schoolSubtitle}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {settings.schoolSubtitle}
+                    </p>
                   )}
                 </div>
               </div>
@@ -163,12 +185,20 @@ export function InstitutionSettingsModal({ isOpen, onClose }: Props) {
 
         {/* Footer */}
         <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end space-x-3">
-          <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+          <Button variant="ghost" onClick={onClose}>
+            Cancelar
+          </Button>
           <Button variant="primary" onClick={handleSave}>
             {saved ? (
-              <><CheckCircle2 className="h-4 w-4 mr-2" />Salvo!</>
+              <>
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                Salvo!
+              </>
             ) : (
-              <><Save className="h-4 w-4 mr-2" />Salvar Configurações</>
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Salvar Configurações
+              </>
             )}
           </Button>
         </div>

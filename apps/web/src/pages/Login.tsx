@@ -148,7 +148,9 @@ export function Login() {
             </form>
 
             <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 text-center space-y-2">
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Acesso Rápido de Demonstração:</p>
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                Acesso Rápido de Demonstração:
+              </p>
               <Button variant="outline" size="sm" onClick={fillDemoTeacher} className="w-full">
                 <Sparkles className="h-3.5 w-3.5 mr-1 text-indigo-600 dark:text-indigo-400" />
                 Entrar como Prof. Carlos Eduardo

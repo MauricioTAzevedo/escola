@@ -117,13 +117,18 @@ export function AiQuestionGeneratorModal({
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Gerar Rascunhos de Questões via IA</h3>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                Gerar Rascunhos de Questões via IA
+              </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 Componente: <span className="font-semibold">{kcName}</span>
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -154,10 +159,14 @@ export function AiQuestionGeneratorModal({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nível de Dificuldade:</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Nível de Dificuldade:
+                  </label>
                   <select
                     value={difficulty}
-                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setDifficulty(e.target.value as any)}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                      setDifficulty(e.target.value as any)
+                    }
                     className="w-full p-2.5 border border-slate-300 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
                   >
                     <option value="EASY">Fácil</option>
@@ -167,7 +176,9 @@ export function AiQuestionGeneratorModal({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Quantidade de Questões:</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Quantidade de Questões:
+                  </label>
                   <div className="flex items-center space-x-2">
                     {[1, 3, 5, 10].map((n) => (
                       <button
@@ -188,7 +199,9 @@ export function AiQuestionGeneratorModal({
                       min={1}
                       max={10}
                       value={count}
-                      onChange={(e) => setCount(Math.min(10, Math.max(1, parseInt(e.target.value, 10) || 1)))}
+                      onChange={(e) =>
+                        setCount(Math.min(10, Math.max(1, parseInt(e.target.value, 10) || 1)))
+                      }
                       className="w-16 p-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 text-center"
                     />
                   </div>
@@ -212,7 +225,9 @@ export function AiQuestionGeneratorModal({
                   <CardHeader className="py-3 px-4 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
                     <div className="flex items-center space-x-2">
                       <Badge variant="warning">Rascunho #{idx + 1}</Badge>
-                      <Badge variant="default">Dificuldade: {formatDifficulty(draft.difficulty)}</Badge>
+                      <Badge variant="default">
+                        Dificuldade: {formatDifficulty(draft.difficulty)}
+                      </Badge>
                     </div>
                     <button
                       type="button"
@@ -220,9 +235,13 @@ export function AiQuestionGeneratorModal({
                       className="flex items-center space-x-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600"
                     >
                       {previewMode ? (
-                        <><Pencil className="h-3.5 w-3.5" /> <span>Editar</span></>
+                        <>
+                          <Pencil className="h-3.5 w-3.5" /> <span>Editar</span>
+                        </>
                       ) : (
-                        <><Eye className="h-3.5 w-3.5" /> <span>Visualizar</span></>
+                        <>
+                          <Eye className="h-3.5 w-3.5" /> <span>Visualizar</span>
+                        </>
                       )}
                     </button>
                   </CardHeader>

@@ -58,10 +58,16 @@ function renderTextWithSteps(text: string, keyPrefix: string): React.ReactNode {
   while ((m = stepRegex.exec(text)) !== null) {
     if (steps.length === 0) {
       // Text before the first step marker is "preamble"
-      preamble = text.substring(0, m.index).replace(/\.\s*$/, '').trim();
+      preamble = text
+        .substring(0, m.index)
+        .replace(/\.\s*$/, '')
+        .trim();
     } else {
       // Close the previous step's content
-      const prevContent = text.substring(lastEnd, m.index).replace(/\.\s*$/, '').trim();
+      const prevContent = text
+        .substring(lastEnd, m.index)
+        .replace(/\.\s*$/, '')
+        .trim();
       steps[steps.length - 1].content = prevContent;
     }
     steps.push({ num: m[1], content: '' });
@@ -74,7 +80,10 @@ function renderTextWithSteps(text: string, keyPrefix: string): React.ReactNode {
   }
 
   // Close the last step
-  steps[steps.length - 1].content = text.substring(lastEnd).replace(/\.\s*$/, '').trim();
+  steps[steps.length - 1].content = text
+    .substring(lastEnd)
+    .replace(/\.\s*$/, '')
+    .trim();
 
   return (
     <div key={keyPrefix} className="space-y-2">
@@ -239,9 +248,7 @@ function renderInlineMath(text: string, keyPrefix: string): React.ReactNode {
           />
         );
       } catch {
-        nodes.push(
-          <span key={`${keyPrefix}-imath-${match.index}`}>{`$${mathStr}$`}</span>
-        );
+        nodes.push(<span key={`${keyPrefix}-imath-${match.index}`}>{`$${mathStr}$`}</span>);
       }
     } else if (match[3]) {
       // Inline Code `...`

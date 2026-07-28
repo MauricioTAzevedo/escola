@@ -17,7 +17,9 @@ export const DEFAULT_BKT_PARAMS: BKTParameters = {
  */
 export function validateProbability(value: number, paramName: string): void {
   if (typeof value !== 'number' || Number.isNaN(value) || value < 0 || value > 1) {
-    throw new Error(`Invalid probability value for ${paramName}: ${value}. Must be between 0 and 1.`);
+    throw new Error(
+      `Invalid probability value for ${paramName}: ${value}. Must be between 0 and 1.`
+    );
   }
 }
 

@@ -44,37 +44,68 @@ export async function kcRoutes(fastify: FastifyInstance) {
   fastify.post('/', { preHandler: [requireRole(['TEACHER', 'ADMIN'])] }, async (request, reply) => {
     const parseResult = CreateKCSchema.safeParse(request.body);
     if (!parseResult.success) {
-      return reply.status(400).send({ error: 'Dados inválidos', details: parseResult.error.flatten().fieldErrors });
+      return reply
+        .status(400)
+        .send({ error: 'Dados inválidos', details: parseResult.error.flatten().fieldErrors });
     }
 
     const kc = await prisma.knowledgeComponent.create({
       data: parseResult.data,
     });
 
+    // Create initial StudentMastery for all enrolled students in this subject
+    const enrollments = await prisma.classEnrollment.findMany({
+      where: { subjectId: kc.subjectId },
+    });
+
+    if (enrollments.length > 0) {
+      await prisma.studentMastery.createMany({
+        data: enrollments.map((enr) => ({
+          studentId: enr.studentId,
+          kcId: kc.id,
+          pMastery: kc.defaultPInit,
+          pInit: kc.defaultPInit,
+          pTransit: kc.defaultPTransit,
+          pSlip: kc.defaultPSlip,
+          pGuess: kc.defaultPGuess,
+        })),
+      });
+    }
+
     return reply.status(201).send(kc);
   });
 
   // PUT /api/kcs/:id
-  fastify.put('/:id', { preHandler: [requireRole(['TEACHER', 'ADMIN'])] }, async (request, reply) => {
-    const { id } = request.params as { id: string };
-    const parseResult = UpdateKCSchema.safeParse(request.body);
-    if (!parseResult.success) {
-      return reply.status(400).send({ error: 'Dados inválidos', details: parseResult.error.flatten().fieldErrors });
+  fastify.put(
+    '/:id',
+    { preHandler: [requireRole(['TEACHER', 'ADMIN'])] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const parseResult = UpdateKCSchema.safeParse(request.body);
+      if (!parseResult.success) {
+        return reply
+          .status(400)
+          .send({ error: 'Dados inválidos', details: parseResult.error.flatten().fieldErrors });
+      }
+
+      const updated = await prisma.knowledgeComponent.update({
+        where: { id },
+        data: parseResult.data,
+      });
+
+      return reply.send(updated);
     }
-
-    const updated = await prisma.knowledgeComponent.update({
-      where: { id },
-      data: parseResult.data,
-    });
-
-    return reply.send(updated);
-  });
+  );
 
   // DELETE /api/kcs/:id
-  fastify.delete('/:id', { preHandler: [requireRole(['TEACHER', 'ADMIN'])] }, async (request, reply) => {
-    const { id } = request.params as { id: string };
+  fastify.delete(
+    '/:id',
+    { preHandler: [requireRole(['TEACHER', 'ADMIN'])] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
 
-    await prisma.knowledgeComponent.delete({ where: { id } });
-    return reply.send({ message: 'Componente de conhecimento removido com sucesso' });
-  });
+      await prisma.knowledgeComponent.delete({ where: { id } });
+      return reply.send({ message: 'Componente de conhecimento removido com sucesso' });
+    }
+  );
 }

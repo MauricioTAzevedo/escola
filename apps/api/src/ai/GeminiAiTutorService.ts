@@ -13,7 +13,10 @@ function extractJsonObjectSubstring(raw: string): string {
   let cleaned = raw.trim();
 
   // Strip ```json ... ``` markdown wrappers if present
-  cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+  cleaned = cleaned
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim();
 
   // Extract substring from first '{' to last '}'
   const firstBrace = cleaned.indexOf('{');
@@ -72,7 +75,11 @@ function fixJsonBackslashes(jsonStr: string): string {
         // Double the backslash so JSON sees it as a literal \
         out.push('\\\\');
         i++; // advance past the \, letters will be output in subsequent iterations
-      } else if (next === 'u' && i + 5 < jsonStr.length && /^[0-9a-fA-F]{4}$/.test(jsonStr.substring(i + 2, i + 6))) {
+      } else if (
+        next === 'u' &&
+        i + 5 < jsonStr.length &&
+        /^[0-9a-fA-F]{4}$/.test(jsonStr.substring(i + 2, i + 6))
+      ) {
         // \uXXXX unicode escape — valid JSON
         out.push(jsonStr.substring(i, i + 6));
         i += 6;
@@ -163,7 +170,14 @@ export class GeminiAiTutorService implements IAiTutorService {
     kcName: string,
     currentPL: number
   ): Promise<string> {
-    const cacheKey = ['explanation', questionStatement, studentAnswer, correctAnswer, kcName, Math.round(currentPL * 10).toString()];
+    const cacheKey = [
+      'explanation',
+      questionStatement,
+      studentAnswer,
+      correctAnswer,
+      kcName,
+      Math.round(currentPL * 10).toString(),
+    ];
 
     const cached = await AiCacheService.getCachedResponse(cacheKey);
     if (cached) return cached;
@@ -217,7 +231,8 @@ Responda exclusivamente no seguinte formato JSON:
     const cached = await AiCacheService.getCachedResponse(cacheKey);
     if (cached) return cached;
 
-    const staticFallback = 'Parabéns pelo empenho nos estudos! A prática constante é a chave para a maestria dos conceitos.';
+    const staticFallback =
+      'Parabéns pelo empenho nos estudos! A prática constante é a chave para a maestria dos conceitos.';
 
     if (!this.genAI || !this.rateLimiter.tryAcquire()) return staticFallback;
 
@@ -254,7 +269,9 @@ Responda no formato JSON:
     count: number = 3
   ): Promise<DraftQuestion[]> {
     if (!this.genAI || !this.rateLimiter.tryAcquire()) {
-      throw new Error('Serviço de IA temporariamente indisponível ou limite atingido. Tente novamente em instantes.');
+      throw new Error(
+        'Serviço de IA temporariamente indisponível ou limite atingido. Tente novamente em instantes.'
+      );
     }
 
     try {

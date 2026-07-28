@@ -37,8 +37,8 @@ export class AdaptivePolicy implements QuestionSelectionStrategy {
 
     const {
       recentlyAnsweredIds = [],
-      targetBandMin = 0.40,
-      targetBandMax = 0.70,
+      targetBandMin = 0.4,
+      targetBandMax = 0.7,
       spacedRepetitionProbability = 0.15,
     } = options;
 

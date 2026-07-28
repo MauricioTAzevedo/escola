@@ -33,7 +33,9 @@ export class ErrorBoundary extends Component<Props, State> {
           <Card className="max-w-md w-full p-6 text-center border-l-4 border-l-rose-500">
             <CardHeader>
               <AlertOctagon className="h-12 w-12 text-rose-500 mx-auto mb-2" />
-              <CardTitle className="text-lg font-bold text-slate-900">Ops! Algo deu errado na interface.</CardTitle>
+              <CardTitle className="text-lg font-bold text-slate-900">
+                Ops! Algo deu errado na interface.
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-slate-600">

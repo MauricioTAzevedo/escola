@@ -33,7 +33,9 @@ export function Navbar() {
                 <div className="bg-indigo-600 text-white p-2 rounded-lg">
                   <GraduationCap className="h-5 w-5" />
                 </div>
-                <span className="font-bold text-slate-900 dark:text-slate-100 text-lg">Plataforma do Professor</span>
+                <span className="font-bold text-slate-900 dark:text-slate-100 text-lg">
+                  Plataforma do Professor
+                </span>
               </Link>
 
               {/* Navigation links */}
@@ -61,7 +63,6 @@ export function Navbar() {
                   <LayoutDashboard className="h-4 w-4" />
                   <span>Métricas</span>
                 </Link>
-
               </nav>
             </div>
 
@@ -80,7 +81,9 @@ export function Navbar() {
               <ThemeToggle />
 
               <div className="text-right hidden sm:block border-l border-slate-200 dark:border-slate-800 pl-3">
-                <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">{user.name}</div>
+                <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  {user.name}
+                </div>
                 <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-end space-x-1">
                   <span>{user.email}</span>
                   <Badge variant="info">Professor</Badge>

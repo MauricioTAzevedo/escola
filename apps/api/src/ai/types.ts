@@ -41,9 +41,7 @@ export interface IAiTutorService {
     currentPL: number
   ): Promise<string>;
 
-  generateStudyFeedback(
-    masteries: Array<{ kcName: string; pMastery: number }>
-  ): Promise<string>;
+  generateStudyFeedback(masteries: Array<{ kcName: string; pMastery: number }>): Promise<string>;
 
   generateQuestionsFromContent(
     rawText: string,

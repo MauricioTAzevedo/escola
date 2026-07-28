@@ -17,14 +17,12 @@ describe('Auth API Integration Tests', () => {
   let accessToken = '';
 
   it('POST /api/auth/register registers a new student and returns JWT tokens', async () => {
-    const res = await supertest(app.server)
-      .post('/api/auth/register')
-      .send({
-        name: 'Aluno Teste',
-        email: testEmail,
-        password: 'senhaSegura123',
-        role: 'STUDENT',
-      });
+    const res = await supertest(app.server).post('/api/auth/register').send({
+      name: 'Aluno Teste',
+      email: testEmail,
+      password: 'senhaSegura123',
+      role: 'STUDENT',
+    });
 
     expect(res.status).toBe(201);
     expect(res.body.user).toBeDefined();
@@ -35,12 +33,10 @@ describe('Auth API Integration Tests', () => {
   });
 
   it('POST /api/auth/login authenticates with valid credentials', async () => {
-    const res = await supertest(app.server)
-      .post('/api/auth/login')
-      .send({
-        email: testEmail,
-        password: 'senhaSegura123',
-      });
+    const res = await supertest(app.server).post('/api/auth/login').send({
+      email: testEmail,
+      password: 'senhaSegura123',
+    });
 
     expect(res.status).toBe(200);
     expect(res.body.tokens.accessToken).toBeDefined();
@@ -56,12 +52,10 @@ describe('Auth API Integration Tests', () => {
   });
 
   it('POST /api/auth/login fails with invalid credentials', async () => {
-    const res = await supertest(app.server)
-      .post('/api/auth/login')
-      .send({
-        email: testEmail,
-        password: 'senhaErrada123',
-      });
+    const res = await supertest(app.server).post('/api/auth/login').send({
+      email: testEmail,
+      password: 'senhaErrada123',
+    });
 
     expect(res.status).toBe(401);
     expect(res.body.error).toBeDefined();

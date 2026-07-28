@@ -12,35 +12,39 @@ const GenerateQuestionsSchema = z.object({
 
 export async function aiRoutes(fastify: FastifyInstance) {
   // POST /api/ai/generate-questions (Teacher/Admin only)
-  fastify.post('/generate-questions', { preHandler: [requireRole(['TEACHER', 'ADMIN'])] }, async (request, reply) => {
-    const parseResult = GenerateQuestionsSchema.safeParse(request.body);
-    if (!parseResult.success) {
-      return reply.status(400).send({
-        error: 'Dados de solicitação inválidos',
-        details: parseResult.error.flatten().fieldErrors,
-      });
+  fastify.post(
+    '/generate-questions',
+    { preHandler: [requireRole(['TEACHER', 'ADMIN'])] },
+    async (request, reply) => {
+      const parseResult = GenerateQuestionsSchema.safeParse(request.body);
+      if (!parseResult.success) {
+        return reply.status(400).send({
+          error: 'Dados de solicitação inválidos',
+          details: parseResult.error.flatten().fieldErrors,
+        });
+      }
+
+      const { rawText, kcName, difficulty, count } = parseResult.data;
+
+      try {
+        const draftQuestions = await aiTutorService.generateQuestionsFromContent(
+          rawText,
+          kcName,
+          difficulty,
+          count
+        );
+
+        return reply.send({
+          draftQuestions: draftQuestions.map((q) => ({
+            ...q,
+            isApproved: false, // Explicitly false: Teacher must review and approve before publishing!
+          })),
+        });
+      } catch (err: any) {
+        return reply.status(500).send({
+          error: err.message || 'Falha ao gerar questões via IA',
+        });
+      }
     }
-
-    const { rawText, kcName, difficulty, count } = parseResult.data;
-
-    try {
-      const draftQuestions = await aiTutorService.generateQuestionsFromContent(
-        rawText,
-        kcName,
-        difficulty,
-        count
-      );
-
-      return reply.send({
-        draftQuestions: draftQuestions.map((q) => ({
-          ...q,
-          isApproved: false, // Explicitly false: Teacher must review and approve before publishing!
-        })),
-      });
-    } catch (err: any) {
-      return reply.status(500).send({
-        error: err.message || 'Falha ao gerar questões via IA',
-      });
-    }
-  });
+  );
 }

@@ -61,7 +61,9 @@ export async function questionRoutes(fastify: FastifyInstance) {
   fastify.post('/', { preHandler: [requireRole(['TEACHER', 'ADMIN'])] }, async (request, reply) => {
     const parseResult = CreateQuestionSchema.safeParse(request.body);
     if (!parseResult.success) {
-      return reply.status(400).send({ error: 'Dados inválidos', details: parseResult.error.flatten().fieldErrors });
+      return reply
+        .status(400)
+        .send({ error: 'Dados inválidos', details: parseResult.error.flatten().fieldErrors });
     }
 
     const { options, ...data } = parseResult.data;
@@ -80,39 +82,49 @@ export async function questionRoutes(fastify: FastifyInstance) {
   });
 
   // PUT /api/questions/:id (Teacher/Admin)
-  fastify.put('/:id', { preHandler: [requireRole(['TEACHER', 'ADMIN'])] }, async (request, reply) => {
-    const { id } = request.params as { id: string };
-    const parseResult = UpdateQuestionSchema.safeParse(request.body);
-    if (!parseResult.success) {
-      return reply.status(400).send({ error: 'Dados inválidos', details: parseResult.error.flatten().fieldErrors });
+  fastify.put(
+    '/:id',
+    { preHandler: [requireRole(['TEACHER', 'ADMIN'])] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const parseResult = UpdateQuestionSchema.safeParse(request.body);
+      if (!parseResult.success) {
+        return reply
+          .status(400)
+          .send({ error: 'Dados inválidos', details: parseResult.error.flatten().fieldErrors });
+      }
+
+      const { options, ...data } = parseResult.data;
+
+      const updated = await prisma.question.update({
+        where: { id },
+        data: {
+          ...data,
+          ...(options !== undefined ? { optionsJson: JSON.stringify(options) } : {}),
+        },
+      });
+
+      return reply.send({
+        ...updated,
+        options: updated.optionsJson ? JSON.parse(updated.optionsJson) : undefined,
+      });
     }
-
-    const { options, ...data } = parseResult.data;
-
-    const updated = await prisma.question.update({
-      where: { id },
-      data: {
-        ...data,
-        ...(options !== undefined ? { optionsJson: JSON.stringify(options) } : {}),
-      },
-    });
-
-    return reply.send({
-      ...updated,
-      options: updated.optionsJson ? JSON.parse(updated.optionsJson) : undefined,
-    });
-  });
+  );
 
   // DELETE /api/questions/:id (Teacher/Admin)
-  fastify.delete('/:id', { preHandler: [requireRole(['TEACHER', 'ADMIN'])] }, async (request, reply) => {
-    const { id } = request.params as { id: string };
+  fastify.delete(
+    '/:id',
+    { preHandler: [requireRole(['TEACHER', 'ADMIN'])] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
 
-    // 1. Delete dependent attempt records first to satisfy foreign key constraints
-    await prisma.attempt.deleteMany({ where: { questionId: id } });
+      // 1. Delete dependent attempt records first to satisfy foreign key constraints
+      await prisma.attempt.deleteMany({ where: { questionId: id } });
 
-    // 2. Delete question
-    await prisma.question.delete({ where: { id } });
+      // 2. Delete question
+      await prisma.question.delete({ where: { id } });
 
-    return reply.send({ message: 'Questão removida com sucesso' });
-  });
+      return reply.send({ message: 'Questão removida com sucesso' });
+    }
+  );
 }

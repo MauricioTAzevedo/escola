@@ -17,26 +17,23 @@ declare module 'fastify' {
 
 if (process.env.NODE_ENV === 'production') {
   if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
-    throw new Error('FATAL SECURITY ERROR: JWT_SECRET and JWT_REFRESH_SECRET environment variables must be configured in production.');
+    throw new Error(
+      'FATAL SECURITY ERROR: JWT_SECRET and JWT_REFRESH_SECRET environment variables must be configured in production.'
+    );
   }
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-change-this-in-production-min-32-chars';
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'super-secret-jwt-refresh-key-change-this-in-production';
-
+const JWT_SECRET =
+  process.env.JWT_SECRET || 'super-secret-jwt-key-change-this-in-production-min-32-chars';
+const JWT_REFRESH_SECRET =
+  process.env.JWT_REFRESH_SECRET || 'super-secret-jwt-refresh-key-change-this-in-production';
 
 export function generateTokens(payload: UserPayload) {
-  const accessToken = jwt.sign(
-    { ...payload, type: 'access' },
-    JWT_SECRET,
-    { expiresIn: '1h' }
-  );
+  const accessToken = jwt.sign({ ...payload, type: 'access' }, JWT_SECRET, { expiresIn: '1h' });
 
-  const refreshToken = jwt.sign(
-    { userId: payload.userId, type: 'refresh' },
-    JWT_REFRESH_SECRET,
-    { expiresIn: '7d' }
-  );
+  const refreshToken = jwt.sign({ userId: payload.userId, type: 'refresh' }, JWT_REFRESH_SECRET, {
+    expiresIn: '7d',
+  });
 
   return { accessToken, refreshToken };
 }

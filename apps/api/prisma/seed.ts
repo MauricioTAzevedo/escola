@@ -50,7 +50,8 @@ async function main() {
   const pythonSubject = await prisma.subject.create({
     data: {
       name: 'Programação em Python',
-      description: 'Fundamentos de programação, estruturas de controle, funções e estruturas de dados em Python.',
+      description:
+        'Fundamentos de programação, estruturas de controle, funções e estruturas de dados em Python.',
       teacherId: teacher.id,
     },
   });
@@ -60,7 +61,8 @@ async function main() {
     data: {
       subjectId: pythonSubject.id,
       name: 'Variáveis e Tipos de Dados',
-      description: 'Declaração de variáveis, tipos primitivos (int, float, str, bool) e conversões.',
+      description:
+        'Declaração de variáveis, tipos primitivos (int, float, str, bool) e conversões.',
     },
   });
 
@@ -84,7 +86,8 @@ async function main() {
     data: {
       subjectId: pythonSubject.id,
       name: 'Funções e Escopo',
-      description: 'Definição de funções com def, parâmetros, valores de retorno e escopo de variáveis.',
+      description:
+        'Definição de funções com def, parâmetros, valores de retorno e escopo de variáveis.',
     },
   });
 
@@ -92,7 +95,8 @@ async function main() {
     data: {
       subjectId: pythonSubject.id,
       name: 'Listas e Dicionários',
-      description: 'Estruturas de dados compostas, indexação, fatiamento e métodos como append, pop e dict keys.',
+      description:
+        'Estruturas de dados compostas, indexação, fatiamento e métodos como append, pop e dict keys.',
     },
   });
 
@@ -126,12 +130,14 @@ async function main() {
         { id: 'opt4', text: 'None' },
       ]),
       correctAnswer: 'opt2',
-      explanation: 'O operador `+` entre duas strings realiza a concatenação, resultando em `"55"`.',
+      explanation:
+        'O operador `+` entre duas strings realiza a concatenação, resultando em `"55"`.',
     },
     {
       subjectId: pythonSubject.id,
       kcId: kcPyCond.id,
-      statement: 'Qual palavra-chave é usada em Python para adicionar uma condição intermediária entre `if` e `else`?',
+      statement:
+        'Qual palavra-chave é usada em Python para adicionar uma condição intermediária entre `if` e `else`?',
       type: QuestionType.MULTIPLE_CHOICE,
       difficulty: Difficulty.EASY,
       optionsJson: JSON.stringify([
@@ -156,7 +162,8 @@ async function main() {
         { id: 'opt4', text: 'Erro de execução' },
       ]),
       correctAnswer: 'opt2',
-      explanation: 'Como `x > 5` (7 > 5, True) e `y < 10` (3 < 10, True) são ambos verdadeiros, a expressão interna é True. O operador `not` inverte para False.',
+      explanation:
+        'Como `x > 5` (7 > 5, True) e `y < 10` (3 < 10, True) são ambos verdadeiros, a expressão interna é True. O operador `not` inverte para False.',
     },
     {
       subjectId: pythonSubject.id,
@@ -176,7 +183,8 @@ async function main() {
     {
       subjectId: pythonSubject.id,
       kcId: kcPyLoops.id,
-      statement: 'Qual comando é utilizado para interromper imediatamente a execução de um laço `while` ou `for`?',
+      statement:
+        'Qual comando é utilizado para interromper imediatamente a execução de um laço `while` ou `for`?',
       type: QuestionType.MULTIPLE_CHOICE,
       difficulty: Difficulty.EASY,
       optionsJson: JSON.stringify([
@@ -206,7 +214,8 @@ async function main() {
     {
       subjectId: pythonSubject.id,
       kcId: kcPyLists.id,
-      statement: 'Qual é o elemento acessado por `frutas[-1]` na lista `frutas = ["maçã", "banana", "laranja"]`?',
+      statement:
+        'Qual é o elemento acessado por `frutas[-1]` na lista `frutas = ["maçã", "banana", "laranja"]`?',
       type: QuestionType.MULTIPLE_CHOICE,
       difficulty: Difficulty.EASY,
       optionsJson: JSON.stringify([
@@ -253,7 +262,8 @@ async function main() {
     {
       subjectId: physicsSubject.id,
       kcId: kcPhysKin.id,
-      statement: 'Um veículo percorre uma distância de 150 km em 2 horas. Qual é a sua velocidade média?',
+      statement:
+        'Um veículo percorre uma distância de 150 km em 2 horas. Qual é a sua velocidade média?',
       type: QuestionType.MULTIPLE_CHOICE,
       difficulty: Difficulty.EASY,
       optionsJson: JSON.stringify([
@@ -268,7 +278,8 @@ async function main() {
     {
       subjectId: physicsSubject.id,
       kcId: kcPhysNewton.id,
-      statement: 'De acordo com a Segunda Lei de Newton, a aceleração de um corpo é diretamente proporcional a:',
+      statement:
+        'De acordo com a Segunda Lei de Newton, a aceleração de um corpo é diretamente proporcional a:',
       type: QuestionType.MULTIPLE_CHOICE,
       difficulty: Difficulty.EASY,
       optionsJson: JSON.stringify([
