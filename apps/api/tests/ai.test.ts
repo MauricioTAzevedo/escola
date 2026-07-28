@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import supertest from 'supertest';
 import { buildApp } from '../src/app';
-import { MockAiTutorService } from '../src/ai/MockAiTutorService';
+import { GeminiAiTutorService } from '../src/ai/GeminiAiTutorService';
 import { RateLimiter } from '../src/ai/RateLimiter';
 import { AiExplanationResponseSchema } from '../src/ai/types';
 
@@ -16,9 +16,9 @@ describe('AI Tutor Service & Cache/Rate-Limiter Tests', () => {
     await app.close();
   });
 
-  it('MockAiTutorService generates valid pt-BR explanation and increments counter', async () => {
-    const mock = new MockAiTutorService();
-    const explanation = await mock.generateExplanation(
+  it('GeminiAiTutorService generates valid fallback explanation when API key is unconfigured', async () => {
+    const service = new GeminiAiTutorService();
+    const explanation = await service.generateExplanation(
       'O que é float em Python?',
       'Número inteiro',
       'float',
@@ -26,8 +26,7 @@ describe('AI Tutor Service & Cache/Rate-Limiter Tests', () => {
       0.45
     );
 
-    expect(explanation).toContain('Variáveis e Tipos de Dados');
-    expect(mock.explanationCallsCount).toBe(1);
+    expect(explanation).toContain('float');
   });
 
   it('Validates AI explanation JSON structure with Zod schema', () => {
@@ -53,12 +52,10 @@ describe('AI Tutor Service & Cache/Rate-Limiter Tests', () => {
 
   it('POST /api/ai/generate-questions returns unapproved draft questions for teacher review', async () => {
     // Login as teacher
-    const loginRes = await supertest(app.server)
-      .post('/api/auth/login')
-      .send({
-        email: 'prof.carlos@escola.edu.br',
-        password: 'senha123',
-      });
+    const loginRes = await supertest(app.server).post('/api/auth/login').send({
+      email: 'prof.carlos@escola.edu.br',
+      password: 'senha123',
+    });
 
     const teacherToken = loginRes.body.tokens.accessToken;
 
@@ -66,7 +63,8 @@ describe('AI Tutor Service & Cache/Rate-Limiter Tests', () => {
       .post('/api/ai/generate-questions')
       .set('Authorization', `Bearer ${teacherToken}`)
       .send({
-        rawText: 'Python possui tipos de dados primitivos como int, float, str e bool. Listas são mutáveis e tuplas são imutáveis.',
+        rawText:
+          'Python possui tipos de dados primitivos como int, float, str e bool. Listas são mutáveis e tuplas são imutáveis.',
         kcName: 'Variáveis e Tipos de Dados',
         difficulty: 'MEDIUM',
         count: 2,

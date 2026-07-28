@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  updateMastery,
-  calculatePosterior,
-  validateProbability,
-  DEFAULT_BKT_PARAMS,
-} from '../src/bkt';
+import { updateMastery, validateProbability, DEFAULT_BKT_PARAMS } from '../src/bkt';
 
 describe('BKT Core Equations & Parameter Validation', () => {
   it('validates probability values and throws on invalid inputs', () => {
@@ -46,10 +41,20 @@ describe('BKT Core Equations & Parameter Validation', () => {
   });
 
   it('clamps output to safe range [0.0001, 0.9999]', () => {
-    const high = updateMastery(0.99, true, { pInit: 0.1, pTransit: 0.5, pSlip: 0.01, pGuess: 0.01 });
+    const high = updateMastery(0.99, true, {
+      pInit: 0.1,
+      pTransit: 0.5,
+      pSlip: 0.01,
+      pGuess: 0.01,
+    });
     expect(high).toBeLessThanOrEqual(0.9999);
 
-    const low = updateMastery(0.01, false, { pInit: 0.1, pTransit: 0.0001, pSlip: 0.5, pGuess: 0.5 });
+    const low = updateMastery(0.01, false, {
+      pInit: 0.1,
+      pTransit: 0.0001,
+      pSlip: 0.5,
+      pGuess: 0.5,
+    });
     expect(low).toBeGreaterThanOrEqual(0.0001);
   });
 });

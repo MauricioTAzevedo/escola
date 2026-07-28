@@ -30,12 +30,11 @@ export function buildApp() {
   app.register(teacherRoutes, { prefix: '/api/teacher' });
   app.register(adminRoutes, { prefix: '/api/admin' });
 
-
   app.get('/health', async () => {
     return { status: 'ok', service: 'Adaptive Tutoring API', version: '1.0.0' };
   });
 
-  app.setErrorHandler((error, _request, reply) => {
+  app.setErrorHandler((error: any, _request, reply) => {
     console.error('API Error:', error);
     reply.status(error.statusCode || 500).send({
       error: error.message || 'Erro interno do servidor',

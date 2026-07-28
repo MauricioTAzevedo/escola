@@ -38,7 +38,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const data = await apiFetch<{ user: UserDto }>('/auth/me');
       set({ user: data.user, isLoading: false });
-    } catch (err) {
+    } catch {
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
       set({ user: null, tokens: null, isLoading: false });
