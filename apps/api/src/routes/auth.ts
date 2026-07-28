@@ -60,7 +60,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       const subjects = await prisma.subject.findMany();
       if (subjects.length > 0) {
         await prisma.classEnrollment.createMany({
-          data: subjects.map((sub) => ({ studentId: user.id, subjectId: sub.id })),
+          data: subjects.map((sub: { id: string }) => ({ studentId: user.id, subjectId: sub.id })),
         });
       }
     }

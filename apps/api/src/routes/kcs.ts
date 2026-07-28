@@ -72,7 +72,7 @@ export async function kcRoutes(fastify: FastifyInstance) {
 
     if (enrollments.length > 0) {
       await prisma.studentMastery.createMany({
-        data: enrollments.map((enr) => ({
+        data: enrollments.map((enr: { studentId: string }) => ({
           studentId: enr.studentId,
           kcId: kc.id,
           pMastery: kc.defaultPInit,

@@ -53,16 +53,16 @@ export async function teacherRoutes(fastify: FastifyInstance) {
       });
 
       const totalQuestions = questions.length;
-      const aiGeneratedCount = questions.filter((q) => q.isAiGenerated).length;
+      const aiGeneratedCount = questions.filter((q: any) => q.isAiGenerated).length;
       const manualCount = totalQuestions - aiGeneratedCount;
 
       const difficultyStats = {
-        EASY: questions.filter((q) => q.difficulty === 'EASY').length,
-        MEDIUM: questions.filter((q) => q.difficulty === 'MEDIUM').length,
-        HARD: questions.filter((q) => q.difficulty === 'HARD').length,
+        EASY: questions.filter((q: any) => q.difficulty === 'EASY').length,
+        MEDIUM: questions.filter((q: any) => q.difficulty === 'MEDIUM').length,
+        HARD: questions.filter((q: any) => q.difficulty === 'HARD').length,
       };
 
-      const kcCoverage = kcs.map((kc) => ({
+      const kcCoverage = kcs.map((kc: any) => ({
         kcId: kc.id,
         kcName: kc.name,
         questionCount: kc._count.questions,
@@ -103,7 +103,7 @@ export async function teacherRoutes(fastify: FastifyInstance) {
       let csv = `ID,Componente de Conhecimento,Enunciado,Tipo,Dificuldade,Opção Correta,Gerado por IA,Explicação\n`;
 
       // Generate Rows
-      questions.forEach((q) => {
+      questions.forEach((q: any) => {
         const cleanStatement = q.statement.replace(/"/g, '""');
         const cleanExplanation = (q.explanation || '').replace(/"/g, '""');
         csv += `"${q.id}","${q.kc.name}","${cleanStatement}","${q.type}","${q.difficulty}","${q.correctAnswer}","${q.isAiGenerated ? 'Sim' : 'Não'}","${cleanExplanation}"\n`;

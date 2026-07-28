@@ -40,7 +40,7 @@ export async function subjectRoutes(fastify: FastifyInstance) {
       orderBy: { createdAt: 'desc' },
     });
 
-    const result = subjects.map((sub) => ({
+    const result = subjects.map((sub: any) => ({
       id: sub.id,
       name: sub.name,
       description: sub.description,
@@ -110,7 +110,7 @@ export async function subjectRoutes(fastify: FastifyInstance) {
     const students = await prisma.user.findMany({ where: { role: 'STUDENT' } });
     if (students.length > 0) {
       await prisma.classEnrollment.createMany({
-        data: students.map((st) => ({ studentId: st.id, subjectId: subject.id })),
+        data: students.map((st: { id: string }) => ({ studentId: st.id, subjectId: subject.id })),
       });
     }
 

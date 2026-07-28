@@ -70,7 +70,7 @@ export async function questionRoutes(fastify: FastifyInstance) {
       orderBy: { createdAt: 'desc' },
     });
 
-    const formatted = questions.map((q) => ({
+    const formatted = questions.map((q: any) => ({
       id: q.id,
       subjectId: q.subjectId,
       kcId: q.kcId,
