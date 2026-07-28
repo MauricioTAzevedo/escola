@@ -11,7 +11,9 @@ import { teacherRoutes } from './routes/teacher';
 import { adminRoutes } from './routes/admin';
 
 export function buildApp() {
-  const app = Fastify({ logger: false });
+  const app = Fastify({
+    logger: process.env.NODE_ENV === 'test' ? false : { level: process.env.LOG_LEVEL || 'info' },
+  });
 
   // 1. Security Headers (CSP, X-Frame-Options, HSTS, X-Content-Type-Options)
   app.register(helmet, {

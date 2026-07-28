@@ -3,14 +3,23 @@ import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { authenticate, requireRole } from '../plugins/auth';
 
+import { sanitizeString } from '../lib/sanitize';
+
 const CreateSubjectSchema = z.object({
-  name: z.string().min(2, 'Nome da disciplina é obrigatório'),
-  description: z.string().default(''),
+  name: z.string().min(2, 'Nome da disciplina é obrigatório').transform(sanitizeString),
+  description: z.string().default('').transform(sanitizeString),
 });
 
 const UpdateSubjectSchema = z.object({
-  name: z.string().min(2).optional(),
-  description: z.string().optional(),
+  name: z
+    .string()
+    .min(2)
+    .optional()
+    .transform((v) => (v ? sanitizeString(v) : v)),
+  description: z
+    .string()
+    .optional()
+    .transform((v) => (v ? sanitizeString(v) : v)),
 });
 
 export async function subjectRoutes(fastify: FastifyInstance) {

@@ -2,21 +2,25 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { authenticate, requireRole } from '../plugins/auth';
+import { sanitizeString } from '../lib/sanitize';
 
 const OptionSchema = z.object({
   id: z.string(),
-  text: z.string().min(1, 'Texto da opção é obrigatório'),
+  text: z.string().min(1, 'Texto da opção é obrigatório').transform(sanitizeString),
 });
 
 const CreateQuestionSchema = z.object({
   subjectId: z.string().min(1, 'ID da disciplina é obrigatório'),
   kcId: z.string().min(1, 'ID do componente de conhecimento é obrigatório'),
-  statement: z.string().min(5, 'Enunciado da questão é obrigatório'),
+  statement: z.string().min(5, 'Enunciado da questão é obrigatório').transform(sanitizeString),
   type: z.enum(['MULTIPLE_CHOICE', 'OPEN_TEXT']).default('MULTIPLE_CHOICE'),
   difficulty: z.enum(['EASY', 'MEDIUM', 'HARD']).default('MEDIUM'),
   options: z.array(OptionSchema).optional(),
   correctAnswer: z.string().min(1, 'Resposta correta é obrigatória'),
-  explanation: z.string().optional(),
+  explanation: z
+    .string()
+    .optional()
+    .transform((val) => (val ? sanitizeString(val) : val)),
   isApproved: z.boolean().default(true),
 });
 

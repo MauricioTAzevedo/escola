@@ -8,7 +8,11 @@ export async function adminRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/export-db',
     { preHandler: [requireRole(['ADMIN', 'TEACHER'])] },
-    async (_request, reply) => {
+    async (request, reply) => {
+      fastify.log.info(
+        { userId: request.user?.userId, email: request.user?.email, action: 'EXPORT_DATABASE' },
+        'Database export requested'
+      );
       const dbPath = path.resolve(process.cwd(), 'dev.db');
 
       if (!fs.existsSync(dbPath)) {

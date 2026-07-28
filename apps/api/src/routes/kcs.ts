@@ -3,10 +3,15 @@ import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { authenticate, requireRole } from '../plugins/auth';
 
+import { sanitizeString } from '../lib/sanitize';
+
 const CreateKCSchema = z.object({
   subjectId: z.string().min(1, 'ID da disciplina é obrigatório'),
-  name: z.string().min(2, 'Nome do componente de conhecimento é obrigatório'),
-  description: z.string().default(''),
+  name: z
+    .string()
+    .min(2, 'Nome do componente de conhecimento é obrigatório')
+    .transform(sanitizeString),
+  description: z.string().default('').transform(sanitizeString),
   defaultPInit: z.number().min(0).max(1).default(0.1),
   defaultPTransit: z.number().min(0).max(1).default(0.15),
   defaultPSlip: z.number().min(0).max(1).default(0.1),
@@ -14,8 +19,15 @@ const CreateKCSchema = z.object({
 });
 
 const UpdateKCSchema = z.object({
-  name: z.string().min(2).optional(),
-  description: z.string().optional(),
+  name: z
+    .string()
+    .min(2)
+    .optional()
+    .transform((v) => (v ? sanitizeString(v) : v)),
+  description: z
+    .string()
+    .optional()
+    .transform((v) => (v ? sanitizeString(v) : v)),
   defaultPInit: z.number().min(0).max(1).optional(),
   defaultPTransit: z.number().min(0).max(1).optional(),
   defaultPSlip: z.number().min(0).max(1).optional(),

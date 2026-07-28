@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import supertest from 'supertest';
 import { buildApp } from '../src/app';
+import { sanitizeString } from '../src/lib/sanitize';
 
 const app = buildApp();
 
@@ -80,5 +81,13 @@ describe('Auth API Integration Tests', () => {
     const res = await supertest(app.server).get('/health');
     expect(res.headers['x-content-type-options']).toBe('nosniff');
     expect(res.headers['x-frame-options']).toBe('SAMEORIGIN');
+  });
+
+  it('Sanitizes input strings and strips dangerous XSS script tags', () => {
+    const maliciousInput =
+      '<script>alert("xss")</script>Qual é a velocidade da luz?<iframe src="bad"></iframe>';
+    const sanitized = sanitizeString(maliciousInput);
+    expect(sanitized).toBe('Qual é a velocidade da luz?');
+    expect(sanitized).not.toContain('<script>');
   });
 });
