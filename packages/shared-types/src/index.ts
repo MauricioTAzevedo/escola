@@ -72,6 +72,7 @@ export interface QuestionDto {
   options?: QuestionOptionDto[];
   correctAnswer?: string;
   explanation?: string;
+  imageUrl?: string;
   kcName?: string;
   isAiGenerated?: boolean;
   isApproved?: boolean;

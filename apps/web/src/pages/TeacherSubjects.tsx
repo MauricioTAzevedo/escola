@@ -12,6 +12,7 @@ import { FormattedText } from '../components/ui/FormattedText';
 import { AiQuestionGeneratorModal } from '../components/AiQuestionGeneratorModal';
 import { ExamPdfModal } from '../components/ExamPdfModal';
 import { InstitutionSettingsModal } from '../components/InstitutionSettingsModal';
+import { BulkImportExportModal } from '../components/BulkImportExportModal';
 import {
   Plus,
   Trash2,
@@ -26,6 +27,8 @@ import {
   Search,
   X as XIcon,
   Building2,
+  FileSpreadsheet,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 
@@ -56,14 +59,17 @@ export function TeacherSubjects() {
   const [opt4, setOpt4] = useState('');
   const [correctOpt, setCorrectOpt] = useState('opt1');
   const [explanation, setExplanation] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [isGeneratingAiExplanation, setIsGeneratingAiExplanation] = useState(false);
 
   // Edit question state
   const [editingQuestion, setEditingQuestion] = useState<QuestionDto | null>(null);
 
-  // AI Modal
+  // AI Modal & Bulk Import/Export Modal
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [aiKcId, setAiKcId] = useState('');
   const [aiKcName, setAiKcName] = useState('');
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
 
   // PDF Modal & Institution Modal
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
@@ -190,6 +196,7 @@ export function TeacherSubjects() {
     setOpt4('');
     setCorrectOpt('opt1');
     setExplanation('');
+    setImageUrl('');
     setQuestionDifficulty('MEDIUM');
     setSelectedKcForQuestion(kcs[0]?.id || '');
     setIsQuestionModalOpen(true);
@@ -204,6 +211,7 @@ export function TeacherSubjects() {
     setOpt4(q.options?.[3]?.text || '');
     setCorrectOpt(q.correctAnswer || 'opt1');
     setExplanation(q.explanation || '');
+    setImageUrl(q.imageUrl || '');
     setQuestionDifficulty((q.difficulty as any) || 'MEDIUM');
     setSelectedKcForQuestion(q.kcId);
     setIsQuestionModalOpen(true);
@@ -212,6 +220,68 @@ export function TeacherSubjects() {
   const closeQuestionModal = () => {
     setIsQuestionModalOpen(false);
     setEditingQuestion(null);
+    setImageUrl('');
+  };
+
+  const handleCreateVariant = async (q: QuestionDto) => {
+    try {
+      const res = await apiFetch<{ variant: any }>('/ai/transform-question', {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'variant',
+          statement: q.statement,
+          options: q.options,
+          correctAnswer: q.correctAnswer,
+        }),
+      });
+
+      const variant = res.variant;
+      if (variant) {
+        createQuestionMutation.mutate({
+          subjectId: currentSubjectId,
+          kcId: q.kcId,
+          statement: variant.statement || q.statement + ' (Variante IA)',
+          type: 'MULTIPLE_CHOICE',
+          difficulty: variant.difficulty || q.difficulty,
+          options: variant.options || q.options,
+          correctAnswer: variant.correctAnswer || q.correctAnswer,
+          explanation: variant.explanation || '',
+          imageUrl: q.imageUrl,
+          isAiGenerated: true,
+          isApproved: true,
+        });
+      }
+    } catch (err: any) {
+      alert(err.message || 'Erro ao gerar variante de questão');
+    }
+  };
+
+  const handleGenerateAiExplanation = async () => {
+    if (!questionStatement) return;
+    setIsGeneratingAiExplanation(true);
+    try {
+      const res = await apiFetch<{ explanation: string }>('/ai/transform-question', {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'explanation',
+          statement: questionStatement,
+          options: [
+            { id: 'opt1', text: opt1 },
+            { id: 'opt2', text: opt2 },
+            { id: 'opt3', text: opt3 },
+            { id: 'opt4', text: opt4 },
+          ],
+          correctAnswer: correctOpt,
+        }),
+      });
+      if (res.explanation) {
+        setExplanation(res.explanation);
+      }
+    } catch (err: any) {
+      alert(err.message || 'Erro ao gerar resolução via IA');
+    } finally {
+      setIsGeneratingAiExplanation(false);
+    }
   };
 
   const handleCreateSubject = (e: React.FormEvent) => {
@@ -244,6 +314,7 @@ export function TeacherSubjects() {
       ],
       correctAnswer: correctOpt,
       explanation,
+      imageUrl: imageUrl || undefined,
     };
 
     if (editingQuestion) {
@@ -408,6 +479,14 @@ export function TeacherSubjects() {
             </Button>
             <Button
               variant="outline"
+              onClick={() => setIsBulkModalOpen(true)}
+              disabled={!currentSubjectId}
+            >
+              <FileSpreadsheet className="h-4 w-4 mr-2 text-emerald-600 dark:text-emerald-400" />
+              Importar / Exportar (CSV/JSON)
+            </Button>
+            <Button
+              variant="outline"
               onClick={() => setIsPdfModalOpen(true)}
               disabled={questions.length === 0}
             >
@@ -534,6 +613,15 @@ export function TeacherSubjects() {
                     {q.isAiGenerated && <Badge variant="warning">Gerado via IA</Badge>}
                   </div>
                   <div className="flex items-center space-x-1">
+                    {/* Variar Questão IA */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCreateVariant(q)}
+                      title="Gerar Variante da Questão via IA"
+                    >
+                      <Sparkles className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                    </Button>
                     {/* Duplicate button */}
                     <Button
                       variant="ghost"
@@ -577,6 +665,17 @@ export function TeacherSubjects() {
                   <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 leading-relaxed">
                     <FormattedText content={q.statement} />
                   </div>
+
+                  {/* Question Image Thumbnail if available */}
+                  {q.imageUrl && (
+                    <div className="my-2 max-w-sm rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
+                      <img
+                        src={q.imageUrl}
+                        alt="Imagem da Questão"
+                        className="w-full h-auto object-contain max-h-48 bg-slate-50 dark:bg-slate-900"
+                      />
+                    </div>
+                  )}
 
                   {/* Options */}
                   {q.options && (
@@ -761,6 +860,20 @@ export function TeacherSubjects() {
                   />
                 </div>
 
+                {/* Image URL Field */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+                    <ImageIcon className="w-3.5 h-3.5 text-blue-500" />
+                    URL da Imagem / Diagrama (Opcional):
+                  </label>
+                  <Input
+                    type="url"
+                    placeholder="https://exemplo.com/imagem-diagrama.png"
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                  />
+                </div>
+
                 {/* Options */}
                 <div className="space-y-2 pt-2">
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
@@ -811,9 +924,23 @@ export function TeacherSubjects() {
 
                 {/* Explanation */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Passo a Passo de Resolução &amp; Resultado Final:
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Passo a Passo de Resolução &amp; Resultado Final:
+                    </label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleGenerateAiExplanation}
+                      isLoading={isGeneratingAiExplanation}
+                      disabled={!questionStatement}
+                      className="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 h-6 px-2"
+                    >
+                      <Sparkles className="w-3 h-3 mr-1 inline" />
+                      Gerar Resolução via IA
+                    </Button>
+                  </div>
                   <textarea
                     rows={3}
                     placeholder="1) Dados... 2) Fórmula $$F = m \cdot a$$... 3) Resultado: 50 N"
@@ -862,6 +989,18 @@ export function TeacherSubjects() {
       <InstitutionSettingsModal
         isOpen={isInstitutionModalOpen}
         onClose={() => setIsInstitutionModalOpen(false)}
+      />
+
+      {/* Bulk Import / Export Modal */}
+      <BulkImportExportModal
+        isOpen={isBulkModalOpen}
+        onClose={() => setIsBulkModalOpen(false)}
+        subjectId={currentSubjectId}
+        kcId={kcs[0]?.id || ''}
+        questions={questions}
+        onImportSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['questions', currentSubjectId] });
+        }}
       />
     </div>
   );

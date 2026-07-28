@@ -49,4 +49,16 @@ export interface IAiTutorService {
     difficulty: string,
     count: number
   ): Promise<DraftQuestion[]>;
+
+  generateQuestionVariant(
+    statement: string,
+    options?: { id: string; text: string }[],
+    correctAnswer?: string
+  ): Promise<DraftQuestion>;
+
+  generateQuestionExplanation(
+    statement: string,
+    options?: { id: string; text: string }[],
+    correctAnswer?: string
+  ): Promise<string>;
 }

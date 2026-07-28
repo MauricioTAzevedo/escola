@@ -21,10 +21,38 @@ const CreateQuestionSchema = z.object({
     .string()
     .optional()
     .transform((val) => (val ? sanitizeString(val) : val)),
+  imageUrl: z
+    .string()
+    .optional()
+    .transform((val) => (val ? sanitizeString(val) : val)),
   isApproved: z.boolean().default(true),
 });
 
 const UpdateQuestionSchema = CreateQuestionSchema.partial();
+
+const BulkImportSchema = z.object({
+  subjectId: z.string().min(1, 'ID da disciplina é obrigatório'),
+  kcId: z.string().min(1, 'ID do componente de conhecimento é obrigatório'),
+  questions: z
+    .array(
+      z.object({
+        statement: z.string().min(5, 'Enunciado inválido').transform(sanitizeString),
+        type: z.enum(['MULTIPLE_CHOICE', 'OPEN_TEXT']).default('MULTIPLE_CHOICE'),
+        difficulty: z.enum(['EASY', 'MEDIUM', 'HARD']).default('MEDIUM'),
+        options: z.array(OptionSchema).optional(),
+        correctAnswer: z.string().min(1, 'Resposta correta é obrigatória'),
+        explanation: z
+          .string()
+          .optional()
+          .transform((val) => (val ? sanitizeString(val) : val)),
+        imageUrl: z
+          .string()
+          .optional()
+          .transform((val) => (val ? sanitizeString(val) : val)),
+      })
+    )
+    .min(1, 'Pelo menos 1 questão deve ser fornecida'),
+});
 
 export async function questionRoutes(fastify: FastifyInstance) {
   // GET /api/questions?subjectId=...&kcId=...
@@ -52,7 +80,8 @@ export async function questionRoutes(fastify: FastifyInstance) {
       difficulty: q.difficulty,
       options: q.optionsJson ? JSON.parse(q.optionsJson) : undefined,
       correctAnswer: q.correctAnswer,
-      explanation: q.explanation,
+      explanation: q.explanation || undefined,
+      imageUrl: q.imageUrl || undefined,
       isAiGenerated: q.isAiGenerated,
       isApproved: q.isApproved,
       createdAt: q.createdAt.toISOString(),
@@ -129,6 +158,54 @@ export async function questionRoutes(fastify: FastifyInstance) {
       await prisma.question.delete({ where: { id } });
 
       return reply.send({ message: 'Questão removida com sucesso' });
+    }
+  );
+
+  // POST /api/questions/bulk (Teacher/Admin - Bulk import CSV/JSON)
+  fastify.post(
+    '/bulk',
+    { preHandler: [requireRole(['TEACHER', 'ADMIN'])] },
+    async (request, reply) => {
+      const parseResult = BulkImportSchema.safeParse(request.body);
+      if (!parseResult.success) {
+        return reply.status(400).send({
+          error: 'Dados de importação em lote inválidos',
+          details: parseResult.error.flatten().fieldErrors,
+        });
+      }
+
+      const { subjectId, kcId, questions } = parseResult.data;
+
+      const subject = await prisma.subject.findUnique({ where: { id: subjectId } });
+      if (!subject) {
+        return reply.status(404).send({ error: 'Disciplina não encontrada' });
+      }
+
+      if (request.user?.role !== 'ADMIN' && subject.teacherId !== request.user?.userId) {
+        return reply
+          .status(403)
+          .send({ error: 'Acesso negado. Você não é o proprietário desta disciplina.' });
+      }
+
+      const createdQuestions = await prisma.$transaction(
+        questions.map((q) => {
+          const { options, ...qData } = q;
+          return prisma.question.create({
+            data: {
+              ...qData,
+              subjectId,
+              kcId,
+              optionsJson: options ? JSON.stringify(options) : null,
+              isApproved: true,
+            },
+          });
+        })
+      );
+
+      return reply.status(201).send({
+        importedCount: createdQuestions.length,
+        message: `${createdQuestions.length} questão(ões) importada(s) com sucesso!`,
+      });
     }
   );
 }

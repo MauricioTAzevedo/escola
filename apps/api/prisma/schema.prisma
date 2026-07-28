@@ -71,6 +71,7 @@ model Question {
   optionsJson   String?
   correctAnswer String
   explanation   String?
+  imageUrl      String?
   isAiGenerated Boolean            @default(false)
   isApproved    Boolean            @default(true)
   createdAt     DateTime           @default(now())

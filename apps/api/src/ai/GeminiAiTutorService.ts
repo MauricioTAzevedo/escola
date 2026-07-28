@@ -325,4 +325,77 @@ Responda exclusivamente no formato JSON (sem nenhum texto explicativo adicional 
       throw new Error(`Falha ao gerar questões via IA: ${err.message || 'Erro no modelo'}`);
     }
   }
+
+  async generateQuestionVariant(
+    statement: string,
+    options?: { id: string; text: string }[],
+    correctAnswer?: string
+  ): Promise<DraftQuestion> {
+    const optionsText = options ? options.map((o) => `${o.id}: ${o.text}`).join('\n') : '';
+
+    const prompt = `
+Você é um professor especialista na criação de avaliações acadêmicas.
+Sua tarefa é criar UMA VARIANTE (versão gêmea) da seguinte questão.
+Mantenha o mesmo conceito e nível de dificuldade, mas altere os valores numéricos, o contexto do enunciado e as alternativas incorretas (distratores).
+
+QUESTÃO ORIGINAL:
+Enunciado: "${statement}"
+${optionsText ? `Alternativas:\n${optionsText}\nResposta Correta: ${correctAnswer}` : ''}
+
+DIRETRIZES DE FORMATAÇÃO:
+- Responda em português do Brasil (pt-BR).
+- Se houver fórmulas, use LaTeX entre cifrões simples ($ ... $).
+- Forneça exatamente 4 alternativas (opt1 a opt4) se for múltipla escolha.
+
+Responda exclusivamente no formato JSON:
+{
+  "statement": "Novo enunciado da questão variante em pt-BR",
+  "type": "MULTIPLE_CHOICE",
+  "difficulty": "MEDIUM",
+  "options": [
+    { "id": "opt1", "text": "Opção 1 em pt-BR" },
+    { "id": "opt2", "text": "Opção 2 em pt-BR" },
+    { "id": "opt3", "text": "Opção 3 em pt-BR" },
+    { "id": "opt4", "text": "Opção 4 em pt-BR" }
+  ],
+  "correctAnswer": "opt1",
+  "explanation": "Passo a passo detalhado de resolução da nova questão."
+}
+`;
+
+    try {
+      const text = await this.generateContentWithFallback(prompt);
+      const parsed = safeParseGeminiJson<any>(text);
+      return parsed;
+    } catch (err: any) {
+      console.error('⚠️ Gemini generateQuestionVariant failed:', err);
+      throw new Error(`Falha ao gerar variante via IA: ${err.message || 'Erro no modelo'}`);
+    }
+  }
+
+  async generateQuestionExplanation(
+    statement: string,
+    options?: { id: string; text: string }[],
+    correctAnswer?: string
+  ): Promise<string> {
+    const optionsText = options ? options.map((o) => `${o.id}: ${o.text}`).join('\n') : '';
+
+    const prompt = `
+Você é um professor especialista. Elabore uma RESOLUÇÃO DETALHADA passo a passo em português do Brasil (pt-BR) para a seguinte questão:
+
+Enunciado: "${statement}"
+${optionsText ? `Alternativas:\n${optionsText}\nResposta Correta: ${correctAnswer}` : ''}
+
+Use LaTeX entre cifrões simples ($ ... $) para equações se necessário.
+Responda com um texto explicativo claro, estruturado e em português.
+`;
+
+    try {
+      const text = await this.generateContentWithFallback(prompt);
+      return text.trim();
+    } catch (err: any) {
+      console.error('⚠️ Gemini generateQuestionExplanation failed:', err);
+      throw new Error(`Falha ao gerar resolução via IA: ${err.message || 'Erro no modelo'}`);
+    }
+  }
 }
