@@ -4,8 +4,8 @@ import path from 'path';
 import { requireRole } from '../plugins/auth';
 
 export async function adminRoutes(fastify: FastifyInstance) {
-  // GET /api/admin/export-db (Download SQLite file backup)
-  fastify.get('/export-db', { preHandler: [requireRole(['ADMIN', 'TEACHER'])] }, async (_request, reply) => {
+  // GET /api/admin/export-db (Download SQLite file backup - Admin only)
+  fastify.get('/export-db', { preHandler: [requireRole(['ADMIN'])] }, async (_request, reply) => {
     const dbPath = path.resolve(process.cwd(), 'dev.db');
 
     if (!fs.existsSync(dbPath)) {
