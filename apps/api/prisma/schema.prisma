@@ -1,0 +1,139 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String            @id @default(uuid())
+  email        String            @unique
+  name         String
+  passwordHash String
+  role         String            @default("STUDENT") // STUDENT, TEACHER, ADMIN
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  enrollments  ClassEnrollment[]
+  attempts     Attempt[]
+  masteries    StudentMastery[]
+  subjects     Subject[]         @relation("TeacherSubjects")
+
+  @@map("users")
+}
+
+model Subject {
+  id                  String               @id @default(uuid())
+  name                String
+  description         String
+  teacherId           String
+  teacher             User                 @relation("TeacherSubjects", fields: [teacherId], references: [id], onDelete: Cascade)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  knowledgeComponents KnowledgeComponent[]
+  questions           Question[]
+  enrollments         ClassEnrollment[]
+
+  @@map("subjects")
+}
+
+model KnowledgeComponent {
+  id              String           @id @default(uuid())
+  subjectId       String
+  subject         Subject          @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  name            String
+  description     String
+  defaultPInit    Float            @default(0.1)
+  defaultPTransit Float            @default(0.15)
+  defaultPSlip    Float            @default(0.1)
+  defaultPGuess   Float            @default(0.2)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  questions       Question[]
+  masteries       StudentMastery[]
+
+  @@map("knowledge_components")
+}
+
+model Question {
+  id            String             @id @default(uuid())
+  subjectId     String
+  subject       Subject            @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  kcId          String
+  kc            KnowledgeComponent @relation(fields: [kcId], references: [id], onDelete: Cascade)
+  statement     String
+  type          String             @default("MULTIPLE_CHOICE") // MULTIPLE_CHOICE, OPEN_TEXT
+  difficulty    String             @default("MEDIUM")          // EASY, MEDIUM, HARD
+  optionsJson   String?
+  correctAnswer String
+  explanation   String?
+  isAiGenerated Boolean            @default(false)
+  isApproved    Boolean            @default(true)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  attempts      Attempt[]
+
+  @@map("questions")
+}
+
+model Attempt {
+  id             String   @id @default(uuid())
+  studentId      String
+  student        User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  questionId     String
+  question       Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedOption String?
+  textAnswer     String?
+  isCorrect      Boolean
+  previousPL     Float
+  newPL          Float
+  aiExplanation  String?
+  createdAt      DateTime @default(now())
+
+  @@map("attempts")
+}
+
+model StudentMastery {
+  id              String             @id @default(uuid())
+  studentId       String
+  student         User               @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  kcId            String
+  kc              KnowledgeComponent @relation(fields: [kcId], references: [id], onDelete: Cascade)
+  pMastery        Float              @default(0.1)
+  pInit           Float              @default(0.1)
+  pTransit        Float              @default(0.15)
+  pSlip           Float              @default(0.1)
+  pGuess          Float              @default(0.2)
+  totalAttempts   Int                @default(0)
+  correctAttempts Int                @default(0)
+  lastUpdated     DateTime           @default(now())
+
+  @@unique([studentId, kcId])
+  @@map("student_masteries")
+}
+
+model ClassEnrollment {
+  id        String   @id @default(uuid())
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subjectId String
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  enrolledAt DateTime @default(now())
+
+  @@unique([studentId, subjectId])
+  @@map("class_enrollments")
+}
+
+model AiCache {
+  hashKey   String   @id
+  response  String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("ai_caches")
+}
