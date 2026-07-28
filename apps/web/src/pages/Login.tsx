@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { UserDto, AuthTokens } from '@escola/shared-types';
 import { useAuthStore } from '../store/useAuthStore';
 import { apiFetch, ApiError } from '../lib/api';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
@@ -25,14 +26,14 @@ export function Login() {
 
     try {
       if (isRegister) {
-        const data = await apiFetch('/auth/register', {
+        const data = await apiFetch<{ user: UserDto; tokens: AuthTokens }>('/auth/register', {
           method: 'POST',
           body: JSON.stringify({ name, email, password, role: 'TEACHER' }),
         });
         setAuth(data.user, data.tokens);
         navigate('/teacher/subjects');
       } else {
-        const data = await apiFetch('/auth/login', {
+        const data = await apiFetch<{ user: UserDto; tokens: AuthTokens }>('/auth/login', {
           method: 'POST',
           body: JSON.stringify({ email, password }),
         });

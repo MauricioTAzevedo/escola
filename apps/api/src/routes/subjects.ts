@@ -23,9 +23,11 @@ const UpdateSubjectSchema = z.object({
 });
 
 export async function subjectRoutes(fastify: FastifyInstance) {
-  // GET /api/subjects (List subjects)
-  fastify.get('/', { preHandler: [authenticate] }, async (_request, reply) => {
+  // GET /api/subjects (List subjects for logged teacher or admin)
+  fastify.get('/', { preHandler: [authenticate] }, async (request, reply) => {
+    const isTeacher = request.user?.role === 'TEACHER';
     const subjects = await prisma.subject.findMany({
+      where: isTeacher ? { teacherId: request.user!.userId } : {},
       include: {
         _count: {
           select: {
@@ -70,11 +72,21 @@ export async function subjectRoutes(fastify: FastifyInstance) {
       return reply.status(404).send({ error: 'Disciplina não encontrada' });
     }
 
+    if (request.user?.role !== 'ADMIN' && subject.teacherId !== request.user?.userId) {
+      return reply
+        .status(403)
+        .send({ error: 'Acesso negado. Você não é o proprietário desta disciplina.' });
+    }
+
     return reply.send({
-      ...subject,
-      kcCount: subject.knowledgeComponents.length,
+      id: subject.id,
+      name: subject.name,
+      description: subject.description,
+      teacherId: subject.teacherId,
+      knowledgeComponents: subject.knowledgeComponents,
       questionCount: subject._count.questions,
       studentCount: subject._count.enrollments,
+      createdAt: subject.createdAt.toISOString(),
     });
   });
 
@@ -87,14 +99,10 @@ export async function subjectRoutes(fastify: FastifyInstance) {
         .send({ error: 'Dados inválidos', details: parseResult.error.flatten().fieldErrors });
     }
 
-    const { name, description } = parseResult.data;
-    const teacherId = request.user!.userId;
-
     const subject = await prisma.subject.create({
       data: {
-        name,
-        description,
-        teacherId,
+        ...parseResult.data,
+        teacherId: request.user!.userId,
       },
     });
 
@@ -127,6 +135,12 @@ export async function subjectRoutes(fastify: FastifyInstance) {
         return reply.status(404).send({ error: 'Disciplina não encontrada' });
       }
 
+      if (request.user?.role !== 'ADMIN' && existing.teacherId !== request.user?.userId) {
+        return reply
+          .status(403)
+          .send({ error: 'Acesso negado. Você não é o proprietário desta disciplina.' });
+      }
+
       const updated = await prisma.subject.update({
         where: { id },
         data: parseResult.data,
@@ -146,6 +160,12 @@ export async function subjectRoutes(fastify: FastifyInstance) {
       const existing = await prisma.subject.findUnique({ where: { id } });
       if (!existing) {
         return reply.status(404).send({ error: 'Disciplina não encontrada' });
+      }
+
+      if (request.user?.role !== 'ADMIN' && existing.teacherId !== request.user?.userId) {
+        return reply
+          .status(403)
+          .send({ error: 'Acesso negado. Você não é o proprietário desta disciplina.' });
       }
 
       await prisma.subject.delete({ where: { id } });

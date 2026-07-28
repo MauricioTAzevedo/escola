@@ -10,7 +10,9 @@ export async function teacherRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       const { subjectId } = request.query as { subjectId?: string };
 
+      const isTeacher = request.user?.role === 'TEACHER';
       const subjects = await prisma.subject.findMany({
+        where: isTeacher ? { teacherId: request.user!.userId } : {},
         select: { id: true, name: true },
       });
 

@@ -98,7 +98,7 @@ export function TeacherSubjects() {
 
   // Mutations
   const createSubjectMutation = useMutation({
-    mutationFn: (body: any) =>
+    mutationFn: (body: { name: string; description?: string }) =>
       apiFetch('/subjects', { method: 'POST', body: JSON.stringify(body) }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subjects'] });
@@ -109,7 +109,8 @@ export function TeacherSubjects() {
   });
 
   const createKcMutation = useMutation({
-    mutationFn: (body: any) => apiFetch('/kcs', { method: 'POST', body: JSON.stringify(body) }),
+    mutationFn: (body: { subjectId: string; name: string; description?: string }) =>
+      apiFetch('/kcs', { method: 'POST', body: JSON.stringify(body) }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['kcs', currentSubjectId] });
       setIsKcModalOpen(false);
@@ -119,7 +120,7 @@ export function TeacherSubjects() {
   });
 
   const createQuestionMutation = useMutation({
-    mutationFn: (body: any) =>
+    mutationFn: (body: Record<string, unknown>) =>
       apiFetch('/questions', { method: 'POST', body: JSON.stringify(body) }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['questions', currentSubjectId] });
@@ -128,7 +129,7 @@ export function TeacherSubjects() {
   });
 
   const updateQuestionMutation = useMutation({
-    mutationFn: ({ id, body }: { id: string; body: any }) =>
+    mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
       apiFetch(`/questions/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['questions', currentSubjectId] });
