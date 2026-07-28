@@ -81,47 +81,58 @@ export async function authRoutes(fastify: FastifyInstance) {
   });
 
   // POST /api/auth/login
-  fastify.post('/login', async (request, reply) => {
-    const parseResult = LoginSchema.safeParse(request.body);
-    if (!parseResult.success) {
-      return reply.status(400).send({
-        error: 'Dados inválidos',
-        details: parseResult.error.flatten().fieldErrors,
+  fastify.post(
+    '/login',
+    {
+      config: {
+        rateLimit: {
+          max: 10,
+          timeWindow: '1 minute',
+        },
+      },
+    },
+    async (request, reply) => {
+      const parseResult = LoginSchema.safeParse(request.body);
+      if (!parseResult.success) {
+        return reply.status(400).send({
+          error: 'Dados inválidos',
+          details: parseResult.error.flatten().fieldErrors,
+        });
+      }
+
+      const { email, password } = parseResult.data;
+
+      const user = await prisma.user.findUnique({ where: { email } });
+      if (!user) {
+        return reply.status(401).send({ error: 'E-mail ou senha incorretos' });
+      }
+
+      const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+      if (!isPasswordValid) {
+        return reply.status(401).send({ error: 'E-mail ou senha incorretos' });
+      }
+
+      const userPayload = {
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role as 'STUDENT' | 'TEACHER' | 'ADMIN',
+      };
+
+      const tokens = generateTokens(userPayload);
+
+      return reply.send({
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          createdAt: user.createdAt.toISOString(),
+        },
+        tokens,
       });
     }
-
-    const { email, password } = parseResult.data;
-
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) {
-      return reply.status(401).send({ error: 'E-mail ou senha incorretos' });
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-    if (!isPasswordValid) {
-      return reply.status(401).send({ error: 'E-mail ou senha incorretos' });
-    }
-
-    const userPayload = {
-      userId: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role as 'STUDENT' | 'TEACHER' | 'ADMIN',
-    };
-
-    const tokens = generateTokens(userPayload);
-
-    return reply.send({
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        createdAt: user.createdAt.toISOString(),
-      },
-      tokens,
-    });
-  });
+  );
 
   // POST /api/auth/refresh
   fastify.post('/refresh', async (request, reply) => {

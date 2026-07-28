@@ -60,4 +60,19 @@ describe('Auth API Integration Tests', () => {
     expect(res.status).toBe(401);
     expect(res.body.error).toBeDefined();
   });
+
+  it('Rejects requests from untrusted CORS origins', async () => {
+    const res = await supertest(app.server)
+      .get('/health')
+      .set('Origin', 'http://malicious-attacker-site.com');
+
+    expect(res.status).toBe(500);
+    expect(res.body.error).toBeDefined();
+  });
+
+  it('Sanitizes error responses and omits stack traces in non-dev environment', async () => {
+    const res = await supertest(app.server).get('/api/invalid-route');
+    expect(res.status).toBe(404);
+    expect(res.body.stack).toBeUndefined();
+  });
 });
