@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
+import helmet from '@fastify/helmet';
 import { authRoutes } from './routes/auth';
 import { subjectRoutes } from './routes/subjects';
 import { kcRoutes } from './routes/kcs';
@@ -12,7 +13,13 @@ import { adminRoutes } from './routes/admin';
 export function buildApp() {
   const app = Fastify({ logger: false });
 
-  // 1. CORS Configuration (Restrict allowed origins)
+  // 1. Security Headers (CSP, X-Frame-Options, HSTS, X-Content-Type-Options)
+  app.register(helmet, {
+    contentSecurityPolicy: process.env.NODE_ENV === 'production',
+    crossOriginEmbedderPolicy: false,
+  });
+
+  // 2. CORS Configuration (Restrict allowed origins)
   const allowedOrigins = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
     : [
@@ -36,7 +43,7 @@ export function buildApp() {
     credentials: true,
   });
 
-  // 2. Global Rate Limiting (Prevent API abuse / DoS)
+  // 3. Global Rate Limiting (Prevent API abuse / DoS)
   app.register(rateLimit, {
     max: 120,
     timeWindow: '1 minute',
@@ -60,7 +67,7 @@ export function buildApp() {
     return { status: 'ok', service: 'Adaptive Tutoring API', version: '1.0.0' };
   });
 
-  // 3. Secure Error Handler (Sanitize internal details & stack traces)
+  // 4. Secure Error Handler (Sanitize internal details & stack traces)
   app.setErrorHandler((error: any, _request, reply) => {
     console.error('API Error:', error);
 

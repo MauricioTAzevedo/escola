@@ -75,4 +75,10 @@ describe('Auth API Integration Tests', () => {
     expect(res.status).toBe(404);
     expect(res.body.stack).toBeUndefined();
   });
+
+  it('Injects security headers (Helmet) on API responses', async () => {
+    const res = await supertest(app.server).get('/health');
+    expect(res.headers['x-content-type-options']).toBe('nosniff');
+    expect(res.headers['x-frame-options']).toBe('SAMEORIGIN');
+  });
 });

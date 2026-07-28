@@ -14,7 +14,15 @@ export async function aiRoutes(fastify: FastifyInstance) {
   // POST /api/ai/generate-questions (Teacher/Admin only)
   fastify.post(
     '/generate-questions',
-    { preHandler: [requireRole(['TEACHER', 'ADMIN'])] },
+    {
+      preHandler: [requireRole(['TEACHER', 'ADMIN'])],
+      config: {
+        rateLimit: {
+          max: 10,
+          timeWindow: '1 minute',
+        },
+      },
+    },
     async (request, reply) => {
       const parseResult = GenerateQuestionsSchema.safeParse(request.body);
       if (!parseResult.success) {
