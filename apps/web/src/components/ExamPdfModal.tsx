@@ -209,36 +209,75 @@ const pdfStyles = StyleSheet.create({
     lineHeight: 1.4,
   },
 
-  // Answer Grid
+  // Answer Grid (Bubble Sheet Style)
   answerGridContainer: {
-    marginTop: 16,
-    paddingTop: 10,
-    borderTop: '1.5pt solid #1e293b',
+    marginTop: 20,
+    paddingTop: 12,
+    borderTop: '2pt solid #1e293b',
+  },
+  answerGridTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 8,
   },
   answerGridTitle: {
-    fontSize: 10,
+    fontSize: 11,
     fontFamily: 'Helvetica-Bold',
     color: '#0f172a',
-    marginBottom: 6,
+    textTransform: 'uppercase',
   },
-  answerGridRow: {
+  answerGridSubtitle: {
+    fontSize: 8,
+    color: '#64748b',
+    fontStyle: 'italic',
+  },
+  answerTable: {
+    border: '1pt solid #334155',
+    borderRadius: 3,
+  },
+  answerTableHeader: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
+    backgroundColor: '#1e293b',
+    paddingVertical: 4,
+    paddingHorizontal: 2,
   },
-  answerBox: {
-    width: 38,
-    height: 32,
-    border: '1pt solid #94a3b8',
-    borderRadius: 2,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 2,
-  },
-  answerBoxNum: {
-    fontSize: 7.5,
+  answerTableHeaderCell: {
+    fontSize: 8,
     fontFamily: 'Helvetica-Bold',
+    color: '#ffffff',
+    textAlign: 'center',
+  },
+  answerTableRow: {
+    flexDirection: 'row',
+    borderBottom: '0.5pt solid #cbd5e1',
+    paddingVertical: 3,
+    paddingHorizontal: 2,
+    alignItems: 'center',
+  },
+  answerTableRowAlt: {
+    flexDirection: 'row',
+    borderBottom: '0.5pt solid #cbd5e1',
+    paddingVertical: 3,
+    paddingHorizontal: 2,
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+  },
+  answerNumCell: {
+    width: 28,
+    fontSize: 9,
+    fontFamily: 'Helvetica-Bold',
+    color: '#1e293b',
+    textAlign: 'center',
+  },
+  answerBubbleCell: {
+    width: 32,
+    textAlign: 'center',
+  },
+  answerBubble: {
+    fontSize: 8.5,
     color: '#475569',
+    textAlign: 'center',
   },
 
   // Footer
@@ -362,14 +401,33 @@ const ExamPdfDocument = ({
         </View>
       ))}
 
-      {/* Answer Grid Box at bottom */}
+      {/* Answer Sheet (Bubble Grid) */}
       <View style={pdfStyles.answerGridContainer} wrap={false}>
-        <Text style={pdfStyles.answerGridTitle}>FOLHA DE RESPOSTAS</Text>
-        <View style={pdfStyles.answerGridRow}>
+        <View style={pdfStyles.answerGridTitleRow}>
+          <Text style={pdfStyles.answerGridTitle}>Folha de Respostas</Text>
+          <Text style={pdfStyles.answerGridSubtitle}>Marque com X a alternativa correta</Text>
+        </View>
+        <View style={pdfStyles.answerTable}>
+          {/* Table Header */}
+          <View style={pdfStyles.answerTableHeader}>
+            <Text style={[pdfStyles.answerTableHeaderCell, { width: 28 }]}>Nº</Text>
+            <Text style={[pdfStyles.answerTableHeaderCell, { width: 32 }]}>A</Text>
+            <Text style={[pdfStyles.answerTableHeaderCell, { width: 32 }]}>B</Text>
+            <Text style={[pdfStyles.answerTableHeaderCell, { width: 32 }]}>C</Text>
+            <Text style={[pdfStyles.answerTableHeaderCell, { width: 32 }]}>D</Text>
+          </View>
+          {/* Table Rows */}
           {questions.map((_, idx) => (
-            <View key={idx} style={pdfStyles.answerBox}>
-              <Text style={pdfStyles.answerBoxNum}>{idx + 1}</Text>
-              <Text style={{ fontSize: 8, color: '#cbd5e1' }}>( )</Text>
+            <View
+              key={idx}
+              style={idx % 2 === 0 ? pdfStyles.answerTableRow : pdfStyles.answerTableRowAlt}
+            >
+              <Text style={pdfStyles.answerNumCell}>{String(idx + 1).padStart(2, '0')}</Text>
+              {['A', 'B', 'C', 'D'].map((letter) => (
+                <View key={letter} style={pdfStyles.answerBubbleCell}>
+                  <Text style={pdfStyles.answerBubble}>( )</Text>
+                </View>
+              ))}
             </View>
           ))}
         </View>
