@@ -18,15 +18,47 @@ function extractJsonObjectSubstring(raw: string): string {
     .replace(/\s*```$/i, '')
     .trim();
 
-  // Extract substring from first '{' to last '}'
-  const firstBrace = cleaned.indexOf('{');
-  const lastBrace = cleaned.lastIndexOf('}');
+  // Find the first '{' and then walk forward tracking brace depth,
+  // respecting JSON strings so that braces inside string values are ignored.
+  const start = cleaned.indexOf('{');
+  if (start === -1) return cleaned;
 
-  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-    return cleaned.substring(firstBrace, lastBrace + 1);
+  let depth = 0;
+  let inString = false;
+  let i = start;
+
+  while (i < cleaned.length) {
+    const ch = cleaned[i];
+
+    if (inString) {
+      if (ch === '\\') {
+        i += 2; // skip escaped character
+        continue;
+      }
+      if (ch === '"') {
+        inString = false;
+      }
+      i++;
+      continue;
+    }
+
+    // Outside a string
+    if (ch === '"') {
+      inString = true;
+    } else if (ch === '{') {
+      depth++;
+    } else if (ch === '}') {
+      depth--;
+      if (depth === 0) {
+        // Found the matching closing brace for the top-level object
+        return cleaned.substring(start, i + 1);
+      }
+    }
+    i++;
   }
 
-  return cleaned;
+  // Fallback: if we never balanced, return from first brace to end
+  return cleaned.substring(start);
 }
 
 /**
