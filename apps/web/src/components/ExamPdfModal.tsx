@@ -64,14 +64,28 @@ function stripMath(text: string): string {
     .replace(/\\sqrt/g, '√')
     .replace(/\\text\{([^}]+)\}/g, '$1')
     .replace(/\^\{([^}]+)\}/g, '^$1')
-    .replace(/\_\{([^}]+)\}/g, '$1')
+    .replace(/\_\{([^}]+)\}/g, '_$1')
     .replace(/\\left|\\right|\\big|\\Big/g, '')
     .replace(/\\[a-zA-Z]+/g, '')
     .replace(/\{|\}/g, '')
     .replace(/```[\w]*\n?/g, '')
     .replace(/`/g, '')
+    .replace(/_/g, '')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+/** Map opt1→a), opt2→b), etc. for the answer key */
+function optIdToLetter(optId: string): string {
+  const map: Record<string, string> = {
+    opt1: 'a',
+    opt2: 'b',
+    opt3: 'c',
+    opt4: 'd',
+    opt5: 'e',
+    opt6: 'f',
+  };
+  return map[optId] || optId;
 }
 
 function getOptionLabel(idx: number): string {
@@ -380,21 +394,25 @@ const ExamPdfDocument = ({
             {title} {version ? `(Versão ${version})` : ''}
           </Text>
         </View>
-        {questions.map((q, idx) => (
-          <View key={q.id} style={{ marginBottom: 10 }} wrap={false}>
-            <Text style={{ fontSize: 9.5, fontFamily: 'Helvetica-Bold', color: '#0f172a' }}>
-              Questão {idx + 1}:{' '}
-              {q.options?.find((o) => o.id === q.correctAnswer)
-                ? `(${q.correctAnswer?.replace('opt', '')}) ${stripMath(q.options.find((o) => o.id === q.correctAnswer)!.text)}`
-                : q.correctAnswer}
-            </Text>
-            {q.explanation && (
-              <Text style={{ fontSize: 8.5, color: '#475569', marginTop: 2, fontStyle: 'italic' }}>
-                Resolução: {stripMath(q.explanation)}
+        {questions.map((q, idx) => {
+          const correctOpt = q.options?.find((o) => o.id === q.correctAnswer);
+          const correctLetter = q.correctAnswer ? optIdToLetter(q.correctAnswer) : '?';
+          return (
+            <View key={q.id} style={{ marginBottom: 10 }} wrap={false}>
+              <Text style={{ fontSize: 9.5, fontFamily: 'Helvetica-Bold', color: '#0f172a' }}>
+                Questão {idx + 1}: ({correctLetter})
+                {correctOpt ? ` ${stripMath(correctOpt.text)}` : ''}
               </Text>
-            )}
-          </View>
-        ))}
+              {q.explanation && (
+                <Text
+                  style={{ fontSize: 8.5, color: '#475569', marginTop: 2, fontStyle: 'italic' }}
+                >
+                  Resolução: {stripMath(q.explanation)}
+                </Text>
+              )}
+            </View>
+          );
+        })}
       </Page>
     )}
   </Document>
@@ -739,9 +757,7 @@ export function ExamPdfModal({
                         <Badge variant="info">{q.kcName}</Badge>
                       </div>
                       <p className="text-xs text-slate-700 dark:text-slate-300 line-clamp-2 leading-relaxed">
-                        {q.statement
-                          .replace(/\$[^$]*\$/g, '[fórmula]')
-                          .replace(/```[\s\S]*?```/g, '[código]')}
+                        {stripMath(q.statement.replace(/```[\s\S]*?```/g, '[código]'))}
                       </p>
                     </div>
                   </div>
