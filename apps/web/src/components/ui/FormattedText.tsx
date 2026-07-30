@@ -44,9 +44,9 @@ export function FormattedText({ content, className = '' }: FormattedTextProps) {
 // Falls back to inline math rendering if no steps are detected.
 // ---------------------------------------------------------------------------
 function renderTextWithSteps(text: string, keyPrefix: string): React.ReactNode {
-  // Match step patterns like "1) ", "2) ", "3) ", or "Passo 1:", "Etapa 2:" etc.
-  // Split on boundaries where a new step starts.
-  const stepRegex = /(?:^|\.\s*)(\d+)\)\s*/g;
+  // Match step patterns like "1) ", "2) ", "3) "
+  // Steps can appear after: start of text, period, colon, semicolon, or newline
+  const stepRegex = /(?:^|[.:;]\s*|\n\s*)(\d+)\)\s*/g;
   const steps: Array<{ num: string; content: string }> = [];
   let lastEnd = 0;
   let preamble = '';
@@ -60,13 +60,13 @@ function renderTextWithSteps(text: string, keyPrefix: string): React.ReactNode {
       // Text before the first step marker is "preamble"
       preamble = text
         .substring(0, m.index)
-        .replace(/\.\s*$/, '')
+        .replace(/[.:;]\s*$/, '')
         .trim();
     } else {
       // Close the previous step's content
       const prevContent = text
         .substring(lastEnd, m.index)
-        .replace(/\.\s*$/, '')
+        .replace(/[.:;]\s*$/, '')
         .trim();
       steps[steps.length - 1].content = prevContent;
     }
