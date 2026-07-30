@@ -44,29 +44,45 @@ export function FormattedText({ content, className = '' }: FormattedTextProps) {
 // Falls back to inline math rendering if no steps are detected.
 // ---------------------------------------------------------------------------
 function renderTextWithSteps(text: string, keyPrefix: string): React.ReactNode {
-  // Match step patterns like "1) ", "2) ", "3) "
-  // Steps can appear after: start of text, period, colon, semicolon, or newline
-  const stepRegex = /(?:^|[.:;]\s*|\n\s*)(\d+)\)\s*/g;
+  // Try Format A: "1) ... 2) ... 3) ..." pattern
+  const resultA = extractNumberedSteps(text);
+  if (resultA) {
+    return renderStepBlocks(resultA.preamble, resultA.steps, keyPrefix);
+  }
+
+  // Try Format B: "Passo 1: ... Passo 2: ..." pattern
+  const resultB = extractPassoSteps(text);
+  if (resultB) {
+    return renderStepBlocks(resultB.preamble, resultB.steps, keyPrefix);
+  }
+
+  // No steps detected, render normally
+  return renderInlineMath(text, keyPrefix);
+}
+
+/** Extract steps in "N) content" format */
+function extractNumberedSteps(
+  text: string
+): { preamble: string; steps: Array<{ num: string; content: string }> } | null {
+  // Original proven regex: matches "N)" after a period+space or at start of text
+  const stepRegex = /(?:^|\.\s*)(\d+)\)\s*/g;
   const steps: Array<{ num: string; content: string }> = [];
   let lastEnd = 0;
   let preamble = '';
   let m: RegExpExecArray | null;
 
-  // Reset regex
   stepRegex.lastIndex = 0;
 
   while ((m = stepRegex.exec(text)) !== null) {
     if (steps.length === 0) {
-      // Text before the first step marker is "preamble"
       preamble = text
         .substring(0, m.index)
-        .replace(/[.:;]\s*$/, '')
+        .replace(/\.\s*$/, '')
         .trim();
     } else {
-      // Close the previous step's content
       const prevContent = text
         .substring(lastEnd, m.index)
-        .replace(/[.:;]\s*$/, '')
+        .replace(/\.\s*$/, '')
         .trim();
       steps[steps.length - 1].content = prevContent;
     }
@@ -74,10 +90,7 @@ function renderTextWithSteps(text: string, keyPrefix: string): React.ReactNode {
     lastEnd = m.index + m[0].length;
   }
 
-  // If fewer than 2 steps detected, render normally (no step formatting)
-  if (steps.length < 2) {
-    return renderInlineMath(text, keyPrefix);
-  }
+  if (steps.length < 2) return null;
 
   // Close the last step
   steps[steps.length - 1].content = text
@@ -85,6 +98,60 @@ function renderTextWithSteps(text: string, keyPrefix: string): React.ReactNode {
     .replace(/\.\s*$/, '')
     .trim();
 
+  // If step 1 is missing (stuck inside preamble after a colon), extract it
+  if (steps[0].num !== '1' && preamble) {
+    const step1Match = preamble.match(/^(.*?)\s*[.:;]\s*1\)\s*([\s\S]+)$/);
+    if (step1Match) {
+      preamble = step1Match[1].trim();
+      steps.unshift({ num: '1', content: step1Match[2].trim() });
+    }
+  }
+
+  if (steps.length < 2) return null;
+  return { preamble, steps };
+}
+
+/** Extract steps in "Passo N:" format */
+function extractPassoSteps(
+  text: string
+): { preamble: string; steps: Array<{ num: string; content: string }> } | null {
+  const stepRegex = /Passo\s+(\d+)\s*:\s*/gi;
+  const steps: Array<{ num: string; content: string }> = [];
+  let lastEnd = 0;
+  let preamble = '';
+  let m: RegExpExecArray | null;
+
+  stepRegex.lastIndex = 0;
+
+  while ((m = stepRegex.exec(text)) !== null) {
+    if (steps.length === 0) {
+      preamble = text.substring(0, m.index).trim();
+    } else {
+      steps[steps.length - 1].content = text
+        .substring(lastEnd, m.index)
+        .replace(/\.\s*$/, '')
+        .trim();
+    }
+    steps.push({ num: m[1], content: '' });
+    lastEnd = m.index + m[0].length;
+  }
+
+  if (steps.length < 2) return null;
+
+  steps[steps.length - 1].content = text
+    .substring(lastEnd)
+    .replace(/\.\s*$/, '')
+    .trim();
+
+  return { preamble, steps };
+}
+
+/** Render step blocks with number badges */
+function renderStepBlocks(
+  preamble: string,
+  steps: Array<{ num: string; content: string }>,
+  keyPrefix: string
+): React.ReactNode {
   return (
     <div key={keyPrefix} className="space-y-2">
       {preamble && (
