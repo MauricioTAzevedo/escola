@@ -15,23 +15,26 @@ declare module 'fastify' {
   }
 }
 
-if (process.env.NODE_ENV === 'production') {
-  if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+
+if (!JWT_SECRET || !JWT_REFRESH_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
     throw new Error(
-      'FATAL SECURITY ERROR: JWT_SECRET and JWT_REFRESH_SECRET environment variables must be configured in production.'
+      'FATAL SECURITY ERROR: JWT_SECRET and JWT_REFRESH_SECRET environment variables must be configured.'
     );
   }
 }
 
-const JWT_SECRET =
-  process.env.JWT_SECRET || 'super-secret-jwt-key-change-this-in-production-min-32-chars';
-const JWT_REFRESH_SECRET =
-  process.env.JWT_REFRESH_SECRET || 'super-secret-jwt-refresh-key-change-this-in-production';
+const EFFECTIVE_JWT_SECRET =
+  JWT_SECRET || 'dev-only-secret-key-do-not-use-in-prod-min-32-chars';
+const EFFECTIVE_JWT_REFRESH_SECRET =
+  JWT_REFRESH_SECRET || 'dev-only-refresh-secret-key-do-not-use-in-prod';
 
 export function generateTokens(payload: UserPayload) {
-  const accessToken = jwt.sign({ ...payload, type: 'access' }, JWT_SECRET, { expiresIn: '1h' });
+  const accessToken = jwt.sign({ ...payload, type: 'access' }, EFFECTIVE_JWT_SECRET, { expiresIn: '1h' });
 
-  const refreshToken = jwt.sign({ userId: payload.userId, type: 'refresh' }, JWT_REFRESH_SECRET, {
+  const refreshToken = jwt.sign({ userId: payload.userId, type: 'refresh' }, EFFECTIVE_JWT_REFRESH_SECRET, {
     expiresIn: '7d',
   });
 
@@ -39,7 +42,7 @@ export function generateTokens(payload: UserPayload) {
 }
 
 export function verifyRefreshToken(token: string): { userId: string } {
-  const decoded = jwt.verify(token, JWT_REFRESH_SECRET) as { userId: string; type: string };
+  const decoded = jwt.verify(token, EFFECTIVE_JWT_REFRESH_SECRET) as { userId: string; type: string };
   if (decoded.type !== 'refresh') {
     throw new Error('Token de atualização inválido');
   }
@@ -54,7 +57,7 @@ export const authenticate = async (request: FastifyRequest, reply: FastifyReply)
     }
 
     const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as UserPayload & { type: string };
+    const decoded = jwt.verify(token, EFFECTIVE_JWT_SECRET) as UserPayload & { type: string };
 
     if (decoded.type !== 'access') {
       return reply.status(401).send({ error: 'Token inválido' });

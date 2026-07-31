@@ -120,6 +120,21 @@ export async function questionRoutes(fastify: FastifyInstance) {
     { preHandler: [requireRole(['TEACHER', 'ADMIN'])] },
     async (request, reply) => {
       const { id } = request.params as { id: string };
+
+      const existing = await prisma.question.findUnique({
+        where: { id },
+        include: { subject: true },
+      });
+      if (!existing) {
+        return reply.status(404).send({ error: 'Questão não encontrada' });
+      }
+
+      if (request.user?.role !== 'ADMIN' && existing.subject.teacherId !== request.user?.userId) {
+        return reply
+          .status(403)
+          .send({ error: 'Acesso negado. Você não é o proprietário desta disciplina.' });
+      }
+
       const parseResult = UpdateQuestionSchema.safeParse(request.body);
       if (!parseResult.success) {
         return reply
@@ -150,6 +165,20 @@ export async function questionRoutes(fastify: FastifyInstance) {
     { preHandler: [requireRole(['TEACHER', 'ADMIN'])] },
     async (request, reply) => {
       const { id } = request.params as { id: string };
+
+      const existing = await prisma.question.findUnique({
+        where: { id },
+        include: { subject: true },
+      });
+      if (!existing) {
+        return reply.status(404).send({ error: 'Questão não encontrada' });
+      }
+
+      if (request.user?.role !== 'ADMIN' && existing.subject.teacherId !== request.user?.userId) {
+        return reply
+          .status(403)
+          .send({ error: 'Acesso negado. Você não é o proprietário desta disciplina.' });
+      }
 
       // 1. Delete dependent attempt records first to satisfy foreign key constraints
       await prisma.attempt.deleteMany({ where: { questionId: id } });

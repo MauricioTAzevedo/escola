@@ -7,7 +7,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
   // GET /api/admin/export-db (Download SQLite file backup)
   fastify.get(
     '/export-db',
-    { preHandler: [requireRole(['ADMIN', 'TEACHER'])] },
+    { preHandler: [requireRole(['ADMIN'])] },
     async (request, reply) => {
       fastify.log.info(
         { userId: request.user?.userId, email: request.user?.email, action: 'EXPORT_DATABASE' },

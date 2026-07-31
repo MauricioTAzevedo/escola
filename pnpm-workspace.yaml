@@ -13,3 +13,7 @@ onlyBuiltDependencies:
   - '@prisma/engines'
   - 'esbuild'
   - 'prisma'
+
+overridePackageVersions:
+  esbuild: '^0.25.0'
+  vite: '^6.4.3'
