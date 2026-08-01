@@ -4,8 +4,11 @@ import { requireRole } from '../plugins/auth';
 import { aiTutorService } from '../ai/AiTutorService';
 
 const GenerateQuestionsSchema = z.object({
-  rawText: z.string().min(20, 'Forneça um texto base com pelo menos 20 caracteres'),
-  kcName: z.string().min(2, 'Nome do componente de conhecimento é obrigatório'),
+  rawText: z
+    .string()
+    .min(20, 'Forneça um texto base com pelo menos 20 caracteres')
+    .max(20000, 'Texto base muito longo (máximo 20.000 caracteres)'),
+  kcName: z.string().min(2, 'Nome do componente de conhecimento é obrigatório').max(200),
   difficulty: z.enum(['EASY', 'MEDIUM', 'HARD']).default('MEDIUM'),
   count: z.number().min(1).max(5).default(3),
 });
@@ -33,15 +36,18 @@ export async function aiRoutes(fastify: FastifyInstance) {
       }
 
       const { rawText, kcName, difficulty, count } = parseResult.data;
+      const userId = request.user!.userId;
 
       try {
         const draftQuestions = await aiTutorService.generateQuestionsFromContent(
+          userId,
           rawText,
           kcName,
           difficulty,
           count
         );
 
+        request.log.info({ userId }, 'ai.questions_generated');
         return reply.send({
           draftQuestions: draftQuestions.map((q) => ({
             ...q,
@@ -49,8 +55,11 @@ export async function aiRoutes(fastify: FastifyInstance) {
           })),
         });
       } catch (err: any) {
+        if (err.message === 'AI_INPUT_TOO_LARGE') {
+          return reply.status(400).send({ error: 'Texto base muito longo' });
+        }
         return reply.status(500).send({
-          error: err.message || 'Falha ao gerar questões via IA',
+          error: 'Falha ao gerar questões via IA. Tente novamente em instantes.',
         });
       }
     }
@@ -71,9 +80,11 @@ export async function aiRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       const TransformSchema = z.object({
         action: z.enum(['variant', 'explanation']),
-        statement: z.string().min(5),
-        options: z.array(z.object({ id: z.string(), text: z.string() })).optional(),
-        correctAnswer: z.string().optional(),
+        statement: z.string().min(5).max(5000),
+        options: z
+          .array(z.object({ id: z.string().max(50), text: z.string().max(1000) }))
+          .optional(),
+        correctAnswer: z.string().max(50).optional(),
       });
 
       const parseResult = TransformSchema.safeParse(request.body);
@@ -82,27 +93,35 @@ export async function aiRoutes(fastify: FastifyInstance) {
       }
 
       const { action, statement, options, correctAnswer } = parseResult.data;
+      const userId = request.user!.userId;
 
       try {
         if (action === 'variant') {
           const variant = await aiTutorService.generateQuestionVariant(
+            userId,
             statement,
             options,
             correctAnswer
           );
+          request.log.info({ userId }, 'ai.variant_generated');
           return reply.send({ variant });
         } else {
           const explanation = await aiTutorService.generateQuestionExplanation(
+            userId,
             statement,
             options,
             correctAnswer
           );
+          request.log.info({ userId }, 'ai.explanation_generated');
           return reply.send({ explanation });
         }
       } catch (err: any) {
-        return reply
-          .status(500)
-          .send({ error: err.message || 'Erro ao transformar questão via IA' });
+        if (err.message === 'AI_INPUT_TOO_LARGE') {
+          return reply.status(400).send({ error: 'Conteúdo muito longo' });
+        }
+        return reply.status(500).send({
+          error: 'Erro ao transformar questão via IA. Tente novamente em instantes.',
+        });
       }
     }
   );

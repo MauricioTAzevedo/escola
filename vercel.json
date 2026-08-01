@@ -36,7 +36,7 @@
   ],
   "rewrites": [
     {
-      "source": "/:path*",
+      "source": "/((?!api/|health).*)",
       "destination": "/index.html"
     }
   ]

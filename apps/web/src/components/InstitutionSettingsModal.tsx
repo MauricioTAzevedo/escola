@@ -15,7 +15,9 @@ export function loadInstitutionSettings(): InstitutionSettings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
-  } catch {}
+  } catch {
+    // ignore malformed stored settings
+  }
   return { schoolName: '', schoolSubtitle: '', logoDataUrl: '' };
 }
 

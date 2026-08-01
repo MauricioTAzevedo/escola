@@ -17,9 +17,12 @@ describe('AI Tutor Service & Cache/Rate-Limiter Tests', () => {
   });
 
   it('GeminiAiTutorService generates valid fallback explanation when API key is unconfigured', async () => {
+    // Prisma auto-loads .env on import; force the unconfigured state for this test.
+    process.env.GEMINI_API_KEY = '';
     const service = new GeminiAiTutorService();
     const explanation = await service.generateExplanation(
-      'O que é float em Python?',
+      'test-user',
+      `Questão única para teste de fallback ${Date.now()}`,
       'Número inteiro',
       'float',
       'Variáveis e Tipos de Dados',
@@ -61,6 +64,7 @@ describe('AI Tutor Service & Cache/Rate-Limiter Tests', () => {
 
     const res = await supertest(app.server)
       .post('/api/ai/generate-questions')
+      .set('Origin', 'http://localhost:3000')
       .set('Authorization', `Bearer ${teacherToken}`)
       .send({
         rawText:

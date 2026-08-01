@@ -2,6 +2,16 @@ import { FastifyInstance } from 'fastify';
 import { prisma } from '../lib/prisma';
 import { requireRole } from '../plugins/auth';
 
+function escapeCsvCell(value: string): string {
+  // OWASP CSV injection: prefix dangerous leading characters with an apostrophe
+  // and escape embedded quotes.
+  const escaped = value.replace(/"/g, '""');
+  if (/^[=+\-@\t\r]/.test(value)) {
+    return `"'${escaped}"`;
+  }
+  return `"${escaped}"`;
+}
+
 export async function teacherRoutes(fastify: FastifyInstance) {
   // GET /api/teacher/analytics?subjectId=...
   fastify.get(
@@ -17,6 +27,15 @@ export async function teacherRoutes(fastify: FastifyInstance) {
       });
 
       const activeSubjectId = subjectId || (subjects.length > 0 ? subjects[0].id : null);
+
+      if (activeSubjectId && isTeacher) {
+        const owned = subjects.some((s) => s.id === activeSubjectId);
+        if (!owned) {
+          return reply
+            .status(403)
+            .send({ error: 'Acesso negado. Você não é o professor desta disciplina.' });
+        }
+      }
 
       if (!activeSubjectId) {
         return reply.send({
@@ -92,7 +111,18 @@ export async function teacherRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({ error: 'ID da disciplina é obrigatório' });
       }
 
+      const isTeacher = request.user?.role === 'TEACHER';
       const subject = await prisma.subject.findUnique({ where: { id: subjectId } });
+      if (!subject) {
+        return reply.status(404).send({ error: 'Disciplina não encontrada' });
+      }
+
+      if (isTeacher && subject.teacherId !== request.user?.userId) {
+        return reply
+          .status(403)
+          .send({ error: 'Acesso negado. Você não é o professor desta disciplina.' });
+      }
+
       const questions = await prisma.question.findMany({
         where: { subjectId },
         include: { kc: { select: { name: true } } },
@@ -102,17 +132,26 @@ export async function teacherRoutes(fastify: FastifyInstance) {
       // Generate CSV Header for Question Bank
       let csv = `ID,Componente de Conhecimento,Enunciado,Tipo,Dificuldade,Opção Correta,Gerado por IA,Explicação\n`;
 
-      // Generate Rows
+      // Generate Rows (formula injection safe)
       questions.forEach((q: any) => {
-        const cleanStatement = q.statement.replace(/"/g, '""');
-        const cleanExplanation = (q.explanation || '').replace(/"/g, '""');
-        csv += `"${q.id}","${q.kc.name}","${cleanStatement}","${q.type}","${q.difficulty}","${q.correctAnswer}","${q.isAiGenerated ? 'Sim' : 'Não'}","${cleanExplanation}"\n`;
+        csv += [
+          escapeCsvCell(q.id),
+          escapeCsvCell(q.kc.name),
+          escapeCsvCell(q.statement),
+          escapeCsvCell(q.type),
+          escapeCsvCell(q.difficulty),
+          escapeCsvCell(q.correctAnswer),
+          escapeCsvCell(q.isAiGenerated ? 'Sim' : 'Não'),
+          escapeCsvCell(q.explanation || ''),
+        ].join(',') + '\n';
       });
+
+      const safeFileName = subject.name.replace(/[^\p{L}\p{N} _-]/gu, '').trim() || 'disciplina';
 
       reply.header('Content-Type', 'text/csv; charset=utf-8');
       reply.header(
         'Content-Disposition',
-        `attachment; filename="banco_questoes_${subject?.name || 'disciplina'}.csv"`
+        `attachment; filename="banco_questoes_${safeFileName}.csv"`
       );
       return reply.send(csv);
     }

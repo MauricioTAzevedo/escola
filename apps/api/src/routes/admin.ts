@@ -13,7 +13,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
         { userId: request.user?.userId, email: request.user?.email, action: 'EXPORT_DATABASE' },
         'Database export requested'
       );
-      const dbPath = path.resolve(process.cwd(), 'dev.db');
+      const dbPath = path.resolve(process.env.DB_PATH || path.join(process.cwd(), 'prisma', 'dev.db'));
 
       if (!fs.existsSync(dbPath)) {
         return reply

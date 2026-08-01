@@ -44,7 +44,7 @@ export interface KnowledgeComponentDto {
 export type QuestionType = 'MULTIPLE_CHOICE' | 'OPEN_TEXT';
 export type QuestionDifficulty = 'EASY' | 'MEDIUM' | 'HARD';
 
-export function formatDifficulty(diff?: string): string {
+export const formatDifficulty = (diff?: string): string => {
   switch (diff) {
     case 'EASY':
       return 'Fácil';
@@ -55,7 +55,7 @@ export function formatDifficulty(diff?: string): string {
     default:
       return diff || 'Médio';
   }
-}
+};
 
 export interface QuestionOptionDto {
   id: string;
@@ -78,38 +78,3 @@ export interface QuestionDto {
   isApproved?: boolean;
 }
 
-export interface SubmitAnswerPayload {
-  questionId: string;
-  selectedOptionId?: string;
-  textAnswer?: string;
-}
-
-export interface SubmitAnswerResponse {
-  attemptId: string;
-  isCorrect: boolean;
-  correctAnswerText: string;
-  previousPL: number;
-  newPL: number;
-  aiExplanation?: string;
-  aiFeedback?: string;
-}
-
-export interface StudentMasteryDto {
-  kcId: string;
-  kcName: string;
-  subjectName?: string;
-  pMastery: number;
-  totalAttempts: number;
-  correctAttempts: number;
-  lastUpdated: string;
-}
-
-export interface FlaggedStudentDto {
-  studentId: string;
-  studentName: string;
-  kcId: string;
-  kcName: string;
-  pMastery: number;
-  attemptsCount: number;
-  reason: 'low_mastery_high_attempts' | 'inactive';
-}

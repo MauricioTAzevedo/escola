@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint src --max-warnings=0"
   },
   "dependencies": {
     "@escola/shared-types": "workspace:*",
@@ -26,7 +27,6 @@
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^4.3.0",
     "autoprefixer": "^10.4.19",
-    "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",

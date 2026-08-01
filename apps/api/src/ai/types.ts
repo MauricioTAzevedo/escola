@@ -34,6 +34,7 @@ export type DraftQuestion = z.infer<typeof DraftQuestionSchema>;
 
 export interface IAiTutorService {
   generateExplanation(
+    userId: string,
     questionStatement: string,
     studentAnswer: string,
     correctAnswer: string,
@@ -41,9 +42,13 @@ export interface IAiTutorService {
     currentPL: number
   ): Promise<string>;
 
-  generateStudyFeedback(masteries: Array<{ kcName: string; pMastery: number }>): Promise<string>;
+  generateStudyFeedback(
+    userId: string,
+    masteries: Array<{ kcName: string; pMastery: number }>
+  ): Promise<string>;
 
   generateQuestionsFromContent(
+    userId: string,
     rawText: string,
     kcName: string,
     difficulty: string,
@@ -51,12 +56,14 @@ export interface IAiTutorService {
   ): Promise<DraftQuestion[]>;
 
   generateQuestionVariant(
+    userId: string,
     statement: string,
     options?: { id: string; text: string }[],
     correctAnswer?: string
   ): Promise<DraftQuestion>;
 
   generateQuestionExplanation(
+    userId: string,
     statement: string,
     options?: { id: string; text: string }[],
     correctAnswer?: string

@@ -1,5 +1,5 @@
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -20,6 +20,7 @@ model User {
   attempts     Attempt[]
   masteries    StudentMastery[]
   subjects     Subject[]         @relation("TeacherSubjects")
+  refreshTokens RefreshToken[]
 
   @@map("users")
 }
@@ -137,4 +138,17 @@ model AiCache {
   createdAt DateTime @default(now())
 
   @@map("ai_caches")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
 }

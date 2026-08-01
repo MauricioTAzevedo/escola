@@ -100,7 +100,7 @@ export function AiQuestionGeneratorModal({
 
       onQuestionsApproved();
       onClose();
-    } catch (err: any) {
+    } catch {
       setError('Falha ao publicar algumas questões. Verifique as informações.');
     } finally {
       setIsPublishing(false);

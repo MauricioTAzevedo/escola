@@ -7,15 +7,16 @@
     "build": "prisma generate && tsc",
     "start": "node dist/index.js",
     "test": "vitest run",
+    "lint": "eslint src tests --max-warnings=0",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "create-admin": "tsx scripts/create-admin.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@escola/bkt-engine": "workspace:*",
     "@escola/shared-types": "workspace:*",
     "@fastify/cors": "^11.3.0",
     "@fastify/helmet": "^13.1.0",

@@ -1,37 +1,14 @@
-import { z } from 'zod';
+import sanitizeHtml from 'sanitize-html';
 
 /**
  * Utility functions for input sanitization to protect against XSS and script injection.
  */
 export function sanitizeString(text: string): string {
   if (!text) return '';
-  let prev = '';
-  let current = text;
-
-  // Loop to handle nested/recursive bypass attempts (e.g. <scr<script>ipt>)
-  while (current !== prev) {
-    prev = current;
-    current = current
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
-      .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
-      .replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, '')
-      .replace(/<svg\b[^<]*(?:(?!<\/svg>)<[^<]*)*<\/svg>/gi, '')
-      .replace(/\bon\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
-      .replace(/(?:javascript|vbscript|data):/gi, '');
-  }
-
-  return current.trim();
-}
-
-/**
- * Zod string transform helper that trims and sanitizes inputs automatically.
- */
-export function sanitizedString(minLength = 1, errorMsg?: string) {
-  return z
-    .string({ required_error: errorMsg })
-    .transform(sanitizeString)
-    .refine((val) => val.length >= minLength, {
-      message: errorMsg || `Deve conter pelo menos ${minLength} caractere(s)`,
-    });
+  return sanitizeHtml(text, {
+    // Text fields in this app are plain text; strip ALL HTML tags/attributes.
+    allowedTags: [],
+    allowedAttributes: {},
+    disallowedTagsMode: 'discard',
+  }).trim();
 }

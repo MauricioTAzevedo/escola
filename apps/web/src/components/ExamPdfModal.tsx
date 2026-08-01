@@ -64,7 +64,7 @@ function stripMath(text: string): string {
     .replace(/\\sqrt/g, '√')
     .replace(/\\text\{([^}]+)\}/g, '$1')
     .replace(/\^\{([^}]+)\}/g, '^$1')
-    .replace(/\_\{([^}]+)\}/g, '_$1')
+    .replace(/_{([^}]+)}/g, '_$1')
     .replace(/\\left|\\right|\\big|\\Big/g, '')
     .replace(/\\[a-zA-Z]+/g, '')
     .replace(/\{|\}/g, '')

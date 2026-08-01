@@ -196,7 +196,7 @@ function fixAllMathAndDeltaSymbols(text: string): string {
 
   // 3. Split text into "already-in-math" ($...$) and "plain text" segments
   const segments: Array<{ text: string; isMath: boolean }> = [];
-  const dollarRegex = /\$([^\$]*)\$/g;
+  const dollarRegex = /\$([^$]*)\$/g;
   let dm;
   let lastIdx = 0;
 
@@ -288,7 +288,7 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
 // ---------------------------------------------------------------------------
 function renderInlineMath(text: string, keyPrefix: string): React.ReactNode {
   // Match inline math $...$ or inline code `...`
-  const inlineRegex = /(\$([^\$]+)\$)|(`([^`]+)`)/g;
+  const inlineRegex = /(\$([^$]+)\$)|(`([^`]+)`)/g;
   const nodes: React.ReactNode[] = [];
   let lastIdx = 0;
   let match: RegExpExecArray | null;

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { apiFetch } from '../lib/api';
+import { apiFetch, getAccessToken } from '../lib/api';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -61,7 +61,7 @@ export function TeacherDashboard() {
 
   const handleDownloadCsv = () => {
     if (!activeSubId) return;
-    const token = localStorage.getItem('token');
+    const token = getAccessToken();
     const url = `/api/teacher/export-csv?subjectId=${activeSubId}`;
     fetch(url, { headers: { Authorization: `Bearer ${token}` } })
       .then((res) => res.blob())

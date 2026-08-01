@@ -20,6 +20,10 @@ const Difficulty = {
 } as const;
 
 async function main() {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('🛑 Refusing to seed in production.');
+    process.exit(1);
+  }
   console.log('🌱 Starting teacher-only database seed (pt-BR)...');
 
   // Clean existing database

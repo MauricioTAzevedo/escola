@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import { UserDto, AuthTokens } from '@escola/shared-types';
 import { useAuthStore } from '../store/useAuthStore';
 import { apiFetch, ApiError } from '../lib/api';
@@ -18,6 +18,8 @@ export function Login() {
 
   const setAuth = useAuthStore((state) => state.setAuth);
   const navigate = useNavigate();
+  const location = useLocation();
+  const justRegistered = (location.state as { registered?: boolean } | null)?.registered;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,19 +30,23 @@ export function Login() {
       if (isRegister) {
         const data = await apiFetch<{ user: UserDto; tokens: AuthTokens }>('/auth/register', {
           method: 'POST',
-          body: JSON.stringify({ name, email, password, role: 'TEACHER' }),
+          body: JSON.stringify({ name, email, password }),
         });
         setAuth(data.user, data.tokens);
-        navigate('/teacher/subjects');
+        navigate('/login', { replace: true, state: { registered: true } });
       } else {
         const data = await apiFetch<{ user: UserDto; tokens: AuthTokens }>('/auth/login', {
           method: 'POST',
           body: JSON.stringify({ email, password }),
         });
         setAuth(data.user, data.tokens);
-        navigate('/teacher/subjects');
+        if (data.user.role === 'TEACHER' || data.user.role === 'ADMIN') {
+          navigate('/teacher/subjects');
+        } else {
+          navigate('/login', { replace: true, state: { registered: true } });
+        }
       }
-    } catch (err: any) {
+    } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);
       } else {
@@ -101,7 +107,7 @@ export function Login() {
                   setError(null);
                 }}
               >
-                Cadastrar Novo Professor
+                Cadastrar Novo Aluno
               </button>
             </div>
           </CardHeader>
@@ -112,14 +118,19 @@ export function Login() {
                 {error}
               </div>
             )}
+            {justRegistered && !error && (
+              <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 rounded-lg text-sm">
+                Cadastro realizado com sucesso! Faça login para continuar.
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {isRegister && (
                 <Input
-                  label="Nome Completo do Professor"
+                  label="Nome Completo"
                   type="text"
                   required
-                  placeholder="Prof. Nome Sobrenome"
+                  placeholder="Seu Nome Completo"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />

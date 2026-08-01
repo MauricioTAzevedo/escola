@@ -1,0 +1,18 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      fastify:
+        patterns: ["@fastify/*", "fastify*"]
+      react:
+        patterns: ["react", "react-dom", "@types/react*"]
+      eslint:
+        patterns: ["eslint", "eslint-plugin-*", "@eslint/*", "typescript-eslint*"]
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

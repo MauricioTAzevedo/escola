@@ -23,11 +23,24 @@ const UpdateSubjectSchema = z.object({
 });
 
 export async function subjectRoutes(fastify: FastifyInstance) {
-  // GET /api/subjects (List subjects for logged teacher or admin)
+  // GET /api/subjects (List subjects for the logged user)
   fastify.get('/', { preHandler: [authenticate] }, async (request, reply) => {
-    const isTeacher = request.user?.role === 'TEACHER';
+    const role = request.user?.role;
+
+    let where: Record<string, any> = {};
+    if (role === 'TEACHER') {
+      where = { teacherId: request.user!.userId };
+    } else if (role === 'STUDENT') {
+      // Students only see subjects they are enrolled in
+      const enrollments = await prisma.classEnrollment.findMany({
+        where: { studentId: request.user!.userId },
+        select: { subjectId: true },
+      });
+      where = { id: { in: enrollments.map((e) => e.subjectId) } };
+    }
+
     const subjects = await prisma.subject.findMany({
-      where: isTeacher ? { teacherId: request.user!.userId } : {},
+      where,
       include: {
         _count: {
           select: {
@@ -72,10 +85,24 @@ export async function subjectRoutes(fastify: FastifyInstance) {
       return reply.status(404).send({ error: 'Disciplina não encontrada' });
     }
 
-    if (request.user?.role !== 'ADMIN' && subject.teacherId !== request.user?.userId) {
-      return reply
-        .status(403)
-        .send({ error: 'Acesso negado. Você não é o proprietário desta disciplina.' });
+    const role = request.user?.role;
+    if (role === 'ADMIN') {
+      // allowed
+    } else if (role === 'TEACHER') {
+      if (subject.teacherId !== request.user?.userId) {
+        return reply
+          .status(403)
+          .send({ error: 'Acesso negado. Você não é o proprietário desta disciplina.' });
+      }
+    } else {
+      const enrolled = await prisma.classEnrollment.findFirst({
+        where: { studentId: request.user!.userId, subjectId: id },
+      });
+      if (!enrolled) {
+        return reply
+          .status(403)
+          .send({ error: 'Acesso negado. Você não está matriculado nesta disciplina.' });
+      }
     }
 
     return reply.send({
@@ -106,14 +133,7 @@ export async function subjectRoutes(fastify: FastifyInstance) {
       },
     });
 
-    // Auto-enroll existing students in the new subject
-    const students = await prisma.user.findMany({ where: { role: 'STUDENT' } });
-    if (students.length > 0) {
-      await prisma.classEnrollment.createMany({
-        data: students.map((st: { id: string }) => ({ studentId: st.id, subjectId: subject.id })),
-      });
-    }
-
+    request.log.info({ userId: request.user?.userId, subjectId: subject.id }, 'subject.created');
     return reply.status(201).send(subject);
   });
 
@@ -146,6 +166,7 @@ export async function subjectRoutes(fastify: FastifyInstance) {
         data: parseResult.data,
       });
 
+      request.log.info({ userId: request.user?.userId, subjectId: id }, 'subject.updated');
       return reply.send(updated);
     }
   );
@@ -168,7 +189,25 @@ export async function subjectRoutes(fastify: FastifyInstance) {
           .send({ error: 'Acesso negado. Você não é o proprietário desta disciplina.' });
       }
 
-      await prisma.subject.delete({ where: { id } });
+      const questionIds = await prisma.question.findMany({
+        where: { subjectId: id },
+        select: { id: true },
+      });
+
+      await prisma.$transaction([
+        prisma.attempt.deleteMany({
+          where: { questionId: { in: questionIds.map((q) => q.id) } },
+        }),
+        prisma.studentMastery.deleteMany({
+          where: { kc: { subjectId: id } },
+        }),
+        prisma.classEnrollment.deleteMany({ where: { subjectId: id } }),
+        prisma.question.deleteMany({ where: { subjectId: id } }),
+        prisma.knowledgeComponent.deleteMany({ where: { subjectId: id } }),
+        prisma.subject.delete({ where: { id } }),
+      ]);
+
+      request.log.info({ userId: request.user?.userId, subjectId: id }, 'subject.deleted');
       return reply.send({ message: 'Disciplina removida com sucesso' });
     }
   );

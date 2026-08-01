@@ -46,6 +46,7 @@ describe('Auth API Integration Tests', () => {
   it('GET /api/auth/me returns current user profile when token is valid', async () => {
     const res = await supertest(app.server)
       .get('/api/auth/me')
+      .set('Origin', 'http://localhost:3000')
       .set('Authorization', `Bearer ${accessToken}`);
 
     expect(res.status).toBe(200);
@@ -67,7 +68,7 @@ describe('Auth API Integration Tests', () => {
       .get('/health')
       .set('Origin', 'http://malicious-attacker-site.com');
 
-    expect(res.status).toBe(500);
+    expect(res.status).toBe(403);
     expect(res.body.error).toBeDefined();
   });
 

@@ -21,7 +21,7 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/teacher/subjects" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return <Outlet />;

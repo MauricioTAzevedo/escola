@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import cookie from '@fastify/cookie';
 import rateLimit from '@fastify/rate-limit';
 import helmet from '@fastify/helmet';
 import { authRoutes } from './routes/auth';
@@ -13,13 +14,27 @@ import { adminRoutes } from './routes/admin';
 export function buildApp() {
   const app = Fastify({
     logger: process.env.NODE_ENV === 'test' ? false : { level: process.env.LOG_LEVEL || 'info' },
+    // Trust the X-Forwarded-For header only when deployed behind a reverse proxy (Vercel etc.)
+    trustProxy: process.env.TRUST_PROXY === 'true',
   });
 
   // 1. Security Headers (CSP, X-Frame-Options, HSTS, X-Content-Type-Options)
   app.register(helmet, {
-    contentSecurityPolicy: process.env.NODE_ENV === 'production',
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+        baseUri: ["'none'"],
+        formAction: ["'self'"],
+        objectSrc: ["'none'"],
+        upgradeInsecureRequests: [],
+      },
+    },
     crossOriginEmbedderPolicy: false,
   });
+
+  // Cookie parsing for HttpOnly refresh token
+  app.register(cookie);
 
   // 2. CORS Configuration (Restrict allowed origins)
   const allowedOrigins = process.env.ALLOWED_ORIGINS
@@ -31,9 +46,27 @@ export function buildApp() {
         'http://127.0.0.1:5173',
       ];
 
+  const hasCredentials = (request: any): boolean =>
+    Boolean(
+      request.headers?.authorization ||
+        /(?:^|;\s*)refresh_token=/.test(request.headers?.cookie || '')
+    );
+
+  // Browsers always send Origin on cross-origin requests, so a missing origin is a
+  // non-browser client (curl, mobile). Credentialed access from such clients is
+  // rejected unless the origin is explicitly whitelisted (checked before CORS runs).
+  app.addHook('onRequest', async (request, reply) => {
+    const origin = request.headers?.origin;
+    if (hasCredentials(request) && !(origin && allowedOrigins.includes(origin))) {
+      return reply.status(403).send({ error: 'Origem não permitida por CORS' });
+    }
+  });
+
   app.register(cors, {
-    origin: (origin, cb) => {
-      // Allow requests with no origin (like mobile apps, curl, or same-origin) or matching whitelist
+    origin: (
+      origin: string | undefined,
+      cb: (err: Error | null, allow: string | boolean | RegExp) => void
+    ) => {
       if (!origin || allowedOrigins.includes(origin)) {
         cb(null, true);
         return;
@@ -70,11 +103,15 @@ export function buildApp() {
   });
 
   // 4. Secure Error Handler (Sanitize internal details & stack traces)
-  app.setErrorHandler((error: any, _request, reply) => {
-    console.error('API Error:', error);
+  app.setErrorHandler((error: any, request, reply) => {
+    request.log.error(error, 'API Error');
 
     const statusCode = error.statusCode || 500;
     const isDev = process.env.NODE_ENV === 'development';
+
+    if (error.message === 'Origem não permitida por CORS') {
+      return reply.status(403).send({ error: 'Origem não permitida por CORS' });
+    }
 
     const response: Record<string, any> = {
       error:

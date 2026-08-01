@@ -5,6 +5,7 @@
 **Framework used:** GSD v1.42.3 (brownfield analysis — artifacts in `.planning/codebase/`)
 **Standards:** OWASP Top 10:2025, OWASP API Security Top 10:2023, CWE
 **Prior audit cross-referenced:** `CODE_REVIEW_FINDINGS.md` (2026-07-31)
+**Remediation:** All 40 findings remediated, descoped, or documented on the same day — see §7. Verified by clean `pnpm audit`, lint, build, and 23 API tests on an isolated DB.
 
 ---
 
@@ -244,6 +245,54 @@ Ranked by risk/impact vs. effort.
 
 ---
 
+## 7. Remediation Status (2026-08-01)
+
+Remediation executed as a GSD hardening campaign (tasks 2–11). Verification: `pnpm build` (all packages),
+`pnpm lint` (0 errors), `pnpm test` (23/23 api tests on isolated `test.db` + 11 bkt-engine), `pnpm audit` clean,
+`tsc --noEmit` clean for api/web.
+
+| ID | Status | What was done |
+|---|---|---|
+| SEC-01 | ✅ Fixed | Registration is STUDENT-only; `role` removed from `RegisterSchema` and from `Login.tsx` (escalation test added). |
+| SEC-02 | ✅ Fixed | `GET /api/questions` role-split: students see only `isApproved` rows without `correctAnswer`/`explanation`; teachers see own subjects only. |
+| SEC-03 | ✅ Fixed | `getOwnedKc` ownership + 404/403 on KC PUT/DELETE. |
+| SEC-04 | ✅ Fixed | `export-csv` ownership check (403) + OWASP formula-escape (SEC-23, test-verified). |
+| SEC-05 | ✅ Fixed | `analytics` `activeSubjectId` scoped to owner (403). |
+| SEC-06 | ✅ Fixed | `POST /kcs` and `POST /questions` (+`/bulk`) enforce subject ownership (403/404). |
+| SEC-07 | ✅ Fixed | `trustProxy` env flag; login throttling moved to an in-handler per-account limiter (5/min/email) after discovering `@fastify/rate-limit`'s keyGenerator runs before body parsing (test-verified). |
+| SEC-08 | ✅ Fixed | JWT secrets rotated to 64-hex random; local SQLite (no Postgres URL in repo); `.env.*` gitignored with `.env.example` placeholders. **Remaining:** rotate the live Gemini key before public deploy. |
+| SEC-09 | ✅ Fixed | Prisma converged to `sqlite`; drift migration applied; admin export uses `DB_PATH`; isolated `test.db` for tests. |
+| SEC-10 | ✅ Fixed | Credentialed requests with missing/disallowed Origin → 403 (pre-CORS hook); CORS callback no longer trusts no-origin. |
+| SEC-11 | ✅ Fixed | Strict CSP always-on (not gated by NODE_ENV). |
+| SEC-12 | ✅ Fixed | `vercel.json` rewrites exclude `/api` and `/health`. |
+| SEC-13 | ✅ Fixed | `.env.*` ignored (exception `.env.example`); `create-admin` bootstrap script (prod-guarded by `ADMIN_BOOTSTRAP_ALLOWED`). |
+| SEC-14/15/16/17 | ✅ Fixed | `vitest 3.2.6`, `vite` patched, `react-router 8.3` direct, `overrides` key fixed in `pnpm-workspace.yaml`, `pnpm audit` clean, Dependabot enabled. |
+| SEC-18 | ✅ Fixed | `jwt.verify` pinned to HS256; `type: 'access'` claim checked. |
+| SEC-19 | ✅ Fixed | Random 64-hex secrets; boot-time fail-closed on known default passphrases. |
+| SEC-20 | ✅ Fixed | Access token in memory only; refresh token in HttpOnly/Secure/SameSite cookie; single-flight cookie refresh + `auth:unauthorized` event on failure. |
+| SEC-21 | ✅ Fixed | `sanitize-html` with all tags/attributes stripped (discard mode). |
+| SEC-22 | ✅ Fixed | `<<<DADOS_FORNECIDOS_PELO_USUARIO…>>>` delimiters + `wrapUserData` around AI input; all Gemini output sanitized; input length caps. |
+| SEC-23 | ✅ Fixed | CSV cells prefixed with `'` when starting with `= + - @ \t \r`; stray-quote variant found and corrected by the new OWASP test. |
+| SEC-24 | ⛔ Descoped | Removed `@escola/bkt-engine` dep from the API and dead student DTOs; documented descope (implementing the practice loop is product work, out of remediation scope). |
+| SEC-25 | ✅ Fixed | Auto-enrollment removed from registration and subject creation. |
+| SEC-26 | ✅ Fixed | Per-user 6 RPM + global 30 RPM Gemini limiters. |
+| SEC-27 | ✅ Fixed | `rawText` capped at 20 000 chars, statements at 5 000, count at 10. |
+| SEC-28 | ✅ Fixed | Opaque 64-hex refresh tokens stored SHA-256-hashed; rotation + reuse detection revokes the whole session family; `logout` and `revoke-all` invalidate server-side. |
+| SEC-29 | 🟡 Partial | Per-account login throttle (5/min). Email verification / password reset not implemented (out of scope). |
+| SEC-30 | ✅ Fixed | Seed refuses to run with `NODE_ENV=production`. |
+| SEC-31 | ✅ Fixed | `.github/workflows/ci.yml` (lint, build, test, audit) + Dependabot. |
+| SEC-32 | ✅ Fixed | Approval is server-owned: manual creates are approved, AI drafts are `isApproved:false` until `POST /questions/:id/approve` (ownership-checked, audit-logged). |
+| SEC-33 | ✅ Fixed | `request.log` audit events on register/login/refresh/logout/revoke-all/question create/approve/delete, KC/import/AI events. |
+| SEC-34 | 🟡 Remains | No external alerting (Sentry etc.) — documented, out of scope. |
+| SEC-35 | ✅ Fixed | Error paths replaced by typed errors + generic fallbacks; dropped-error path removed. |
+| SEC-36 | ✅ Fixed | AI errors mapped: `AI_INPUT_TOO_LARGE`→400, everything else generic 500 + `request.log`. |
+| SEC-37 | ✅ Fixed | KC PUT/DELETE return 404 for missing IDs (404/403 distinction test-verified). |
+| SEC-38 | ✅ Fixed | Question delete wrapped in `$transaction` (attempts+question); subject cascade delete transactional. |
+| SEC-39 | 🟡 Partial | Refresh-failure notification via `auth:unauthorized` → store reset. CSV download `.catch` / query `isError` UIs not addressed (out of scope). |
+| SEC-40 | ✅ Fixed | Disallowed CORS origin → 403 (not 500); test updated to assert 403. |
+
+---
+
 ## Appendix A — Fixed since previous audit (verified)
 
 - Registration can no longer assign `ADMIN` (was SEC-02 high) — `auth.ts:14` enum `STUDENT|TEACHER`.
@@ -254,7 +303,9 @@ Ranked by risk/impact vs. effort.
 
 ## Appendix B — Verification notes
 
-- `pnpm audit` run 2026-08-01: 7 vulns (1 critical, 3 high, 3 moderate) — details in A03.
-- Tests runnable locally: `pnpm test` covers API (9+4) and bkt-engine (11); web has no test script; zero coverage config.
+- `pnpm audit` run 2026-08-01 (post-remediation): **clean** — no known vulnerabilities.
+- Tests (isolated DB via `vitest.config.ts` + `tests/global-setup.ts`, `file:./test.db`): api 23/23 (auth 8, ai 4, security 11), bkt-engine 11/11.
+- New security regression tests: privilege escalation, weak password, refresh rotation, reuse-detection family revocation, logout/revoke-all invalidation, student answer non-leak, cross-teacher 403s, missing-resource 404s, approve flow, CSV formula injection.
+- CI: `.github/workflows/ci.yml` runs audit, lint, build, and tests on Node 22 + pnpm 11.15.1.
 - GSD brownfield artifacts produced during this audit: `.planning/codebase/{STACK,ARCHITECTURE,STRUCTURE,INTEGRATIONS,CONCERNS}.md`.
 - All file:line references verified against the working tree at commit `5c4bc07`.

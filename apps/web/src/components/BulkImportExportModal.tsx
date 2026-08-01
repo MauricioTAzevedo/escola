@@ -167,12 +167,12 @@ export function BulkImportExportModal({
     const dataRows = lines.slice(1);
     const parsed: ParsedImportQuestion[] = dataRows.map((line) => {
       // Basic CSV splitter respecting quotes
-      const parts = line.match(/(?:\"[^\"]*\"|[^,])+/g) || [];
+      const parts = line.match(/(?:"[^"]*"|[^,])+/g) || [];
       const cleanParts = parts.map((p) =>
         p
           .trim()
-          .replace(/^\"|\"$/g, '')
-          .replace(/\"\"/g, '"')
+          .replace(/^"|"$/g, '')
+          .replace(/""/g, '"')
       );
 
       const statement = cleanParts[0] || '';
