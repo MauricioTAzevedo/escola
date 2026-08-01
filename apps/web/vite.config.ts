@@ -12,4 +12,18 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom', 'zustand', '@tanstack/react-query'],
+          'vendor-katex': ['katex'],
+          'vendor-charts': ['recharts'],
+          'vendor-pdf': ['@react-pdf/renderer'],
+          'vendor-icons': ['lucide-react'],
+        },
+      },
+    },
+  },
 });

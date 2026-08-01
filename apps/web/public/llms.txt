@@ -1,0 +1,7 @@
+# Plataforma de Tutoria Adaptativa
+
+> Sistema educacional inteligente para gestão de turmas, componentes de conhecimento e geração de avaliações via IA.
+
+## Links Principais
+- [Página de Login](https://escola-web-hazel.vercel.app/login)
+- [Painel do Professor](https://escola-web-hazel.vercel.app/teacher/subjects)
