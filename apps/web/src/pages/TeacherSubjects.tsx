@@ -10,9 +10,12 @@ import { Input } from '../components/ui/Input';
 import { Badge } from '../components/ui/Badge';
 import { FormattedText } from '../components/ui/FormattedText';
 import { AiQuestionGeneratorModal } from '../components/AiQuestionGeneratorModal';
-import { ExamPdfModal } from '../components/ExamPdfModal';
 import { InstitutionSettingsModal } from '../components/InstitutionSettingsModal';
 import { BulkImportExportModal } from '../components/BulkImportExportModal';
+
+const ExamPdfModal = React.lazy(() =>
+  import('../components/ExamPdfModal').then((m) => ({ default: m.ExamPdfModal }))
+);
 import {
   Plus,
   Trash2,
@@ -977,13 +980,17 @@ export function TeacherSubjects() {
       />
 
       {/* PDF Export Modal */}
-      <ExamPdfModal
-        isOpen={isPdfModalOpen}
-        onClose={() => setIsPdfModalOpen(false)}
-        questions={questions}
-        subjectName={currentSubjectName}
-        teacherName={user?.name || ''}
-      />
+      {isPdfModalOpen && (
+        <React.Suspense fallback={null}>
+          <ExamPdfModal
+            isOpen={isPdfModalOpen}
+            onClose={() => setIsPdfModalOpen(false)}
+            questions={questions}
+            subjectName={currentSubjectName}
+            teacherName={user?.name || ''}
+          />
+        </React.Suspense>
+      )}
 
       {/* Institution Settings Modal */}
       <InstitutionSettingsModal
