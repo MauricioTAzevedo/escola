@@ -2,6 +2,9 @@
   "name": "escola-monorepo",
   "private": true,
   "version": "1.0.0",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "pnpm --recursive --parallel run dev",
     "build": "pnpm --recursive run build",

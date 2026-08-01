@@ -1,0 +1,10 @@
+{
+  "permission": {
+    "read": {
+      "C:/Users/Maurício/Downloads/escola/.opencode/get-shit-done/*": "allow"
+    },
+    "external_directory": {
+      "C:/Users/Maurício/Downloads/escola/.opencode/get-shit-done/*": "allow"
+    }
+  }
+}

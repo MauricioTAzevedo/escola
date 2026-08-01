@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { UserDto, AuthTokens } from '@escola/shared-types';
 import { useAuthStore } from '../store/useAuthStore';
 import { apiFetch, ApiError } from '../lib/api';

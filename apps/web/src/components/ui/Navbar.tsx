@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Button } from './Button';
 import { Badge } from './Badge';
