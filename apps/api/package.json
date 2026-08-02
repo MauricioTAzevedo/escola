@@ -39,7 +39,7 @@
     "supertest": "^7.0.0",
     "tsx": "^4.10.5",
     "typescript": "^5.4.5",
-    "vitest": "^3.2.6"
+    "vitest": "^4.1.10"
   }
 }
 
