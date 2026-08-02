@@ -2,7 +2,6 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { authenticate, requireRole } from '../plugins/auth';
-
 import { sanitizeString } from '../lib/sanitize';
 
 const CreateKCSchema = z.object({
@@ -61,6 +60,17 @@ export async function kcRoutes(fastify: FastifyInstance) {
         .send({ error: 'Dados inválidos', details: parseResult.error.flatten().fieldErrors });
     }
 
+    const subject = await prisma.subject.findUnique({ where: { id: parseResult.data.subjectId } });
+    if (!subject) {
+      return reply.status(404).send({ error: 'Disciplina não encontrada' });
+    }
+
+    if (request.user?.role !== 'ADMIN' && subject.teacherId !== request.user?.userId) {
+      return reply
+        .status(403)
+        .send({ error: 'Acesso negado. Você não é o proprietário desta disciplina.' });
+    }
+
     const kc = await prisma.knowledgeComponent.create({
       data: parseResult.data,
     });
@@ -93,6 +103,21 @@ export async function kcRoutes(fastify: FastifyInstance) {
     { preHandler: [requireRole(['TEACHER', 'ADMIN'])] },
     async (request, reply) => {
       const { id } = request.params as { id: string };
+
+      const existing = await prisma.knowledgeComponent.findUnique({
+        where: { id },
+        include: { subject: true },
+      });
+      if (!existing) {
+        return reply.status(404).send({ error: 'Componente de conhecimento não encontrado' });
+      }
+
+      if (request.user?.role !== 'ADMIN' && existing.subject.teacherId !== request.user?.userId) {
+        return reply
+          .status(403)
+          .send({ error: 'Acesso negado. Você não é o proprietário desta disciplina.' });
+      }
+
       const parseResult = UpdateKCSchema.safeParse(request.body);
       if (!parseResult.success) {
         return reply
@@ -115,6 +140,20 @@ export async function kcRoutes(fastify: FastifyInstance) {
     { preHandler: [requireRole(['TEACHER', 'ADMIN'])] },
     async (request, reply) => {
       const { id } = request.params as { id: string };
+
+      const existing = await prisma.knowledgeComponent.findUnique({
+        where: { id },
+        include: { subject: true },
+      });
+      if (!existing) {
+        return reply.status(404).send({ error: 'Componente de conhecimento não encontrado' });
+      }
+
+      if (request.user?.role !== 'ADMIN' && existing.subject.teacherId !== request.user?.userId) {
+        return reply
+          .status(403)
+          .send({ error: 'Acesso negado. Você não é o proprietário desta disciplina.' });
+      }
 
       await prisma.knowledgeComponent.delete({ where: { id } });
       return reply.send({ message: 'Componente de conhecimento removido com sucesso' });

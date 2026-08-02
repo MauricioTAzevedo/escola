@@ -20,6 +20,7 @@ model User {
   attempts     Attempt[]
   masteries    StudentMastery[]
   subjects     Subject[]         @relation("TeacherSubjects")
+  refreshTokens RefreshToken[]
 
   @@map("users")
 }
@@ -138,3 +139,17 @@ model AiCache {
 
   @@map("ai_caches")
 }
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime  @default(now())
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+

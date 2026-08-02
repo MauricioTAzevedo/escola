@@ -28,7 +28,7 @@ export function Login() {
       if (isRegister) {
         const data = await apiFetch<{ user: UserDto; tokens: AuthTokens }>('/auth/register', {
           method: 'POST',
-          body: JSON.stringify({ name, email, password, role: 'TEACHER' }),
+          body: JSON.stringify({ name, email, password, role: 'STUDENT' }),
         });
         setAuth(data.user, data.tokens);
         navigate('/teacher/subjects');

@@ -2,6 +2,15 @@ import { FastifyInstance } from 'fastify';
 import { prisma } from '../lib/prisma';
 import { requireRole } from '../plugins/auth';
 
+function escapeCsvCell(val: string): string {
+  let str = val.replace(/"/g, '""');
+  // SEC-23: Escape CSV formula injection vectors (=, +, -, @, \t, \r)
+  if (/^[=+\-@\t\r]/.test(str)) {
+    str = "'" + str;
+  }
+  return `"${str}"`;
+}
+
 export async function teacherRoutes(fastify: FastifyInstance) {
   // GET /api/teacher/analytics?subjectId=...
   fastify.get(
@@ -29,6 +38,17 @@ export async function teacherRoutes(fastify: FastifyInstance) {
           difficultyStats: { EASY: 0, MEDIUM: 0, HARD: 0 },
           kcCoverage: [],
         });
+      }
+
+      // Check ownership if explicit subjectId passed
+      if (subjectId) {
+        const targetSubject = await prisma.subject.findUnique({ where: { id: subjectId } });
+        if (!targetSubject) {
+          return reply.status(404).send({ error: 'Disciplina não encontrada' });
+        }
+        if (request.user?.role !== 'ADMIN' && targetSubject.teacherId !== request.user?.userId) {
+          return reply.status(403).send({ error: 'Acesso negado. Você não é o proprietário desta disciplina.' });
+        }
       }
 
       // Fetch KCs for subject
@@ -93,6 +113,14 @@ export async function teacherRoutes(fastify: FastifyInstance) {
       }
 
       const subject = await prisma.subject.findUnique({ where: { id: subjectId } });
+      if (!subject) {
+        return reply.status(404).send({ error: 'Disciplina não encontrada' });
+      }
+
+      if (request.user?.role !== 'ADMIN' && subject.teacherId !== request.user?.userId) {
+        return reply.status(403).send({ error: 'Acesso negado. Você não é o proprietário desta disciplina.' });
+      }
+
       const questions = await prisma.question.findMany({
         where: { subjectId },
         include: { kc: { select: { name: true } } },
@@ -104,15 +132,13 @@ export async function teacherRoutes(fastify: FastifyInstance) {
 
       // Generate Rows
       questions.forEach((q: any) => {
-        const cleanStatement = q.statement.replace(/"/g, '""');
-        const cleanExplanation = (q.explanation || '').replace(/"/g, '""');
-        csv += `"${q.id}","${q.kc.name}","${cleanStatement}","${q.type}","${q.difficulty}","${q.correctAnswer}","${q.isAiGenerated ? 'Sim' : 'Não'}","${cleanExplanation}"\n`;
+        csv += `${escapeCsvCell(q.id)},${escapeCsvCell(q.kc.name)},${escapeCsvCell(q.statement)},${escapeCsvCell(q.type)},${escapeCsvCell(q.difficulty)},${escapeCsvCell(q.correctAnswer)},${escapeCsvCell(q.isAiGenerated ? 'Sim' : 'Não')},${escapeCsvCell(q.explanation || '')}\n`;
       });
 
       reply.header('Content-Type', 'text/csv; charset=utf-8');
       reply.header(
         'Content-Disposition',
-        `attachment; filename="banco_questoes_${subject?.name || 'disciplina'}.csv"`
+        `attachment; filename="banco_questoes_${subject.name}.csv"`
       );
       return reply.send(csv);
     }

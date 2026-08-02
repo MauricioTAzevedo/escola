@@ -32,9 +32,13 @@ const EFFECTIVE_JWT_REFRESH_SECRET =
   JWT_REFRESH_SECRET || 'dev-only-refresh-secret-key-do-not-use-in-prod';
 
 export function generateTokens(payload: UserPayload) {
-  const accessToken = jwt.sign({ ...payload, type: 'access' }, EFFECTIVE_JWT_SECRET, { expiresIn: '1h' });
+  const accessToken = jwt.sign({ ...payload, type: 'access' }, EFFECTIVE_JWT_SECRET, {
+    algorithm: 'HS256',
+    expiresIn: '1h',
+  });
 
   const refreshToken = jwt.sign({ userId: payload.userId, type: 'refresh' }, EFFECTIVE_JWT_REFRESH_SECRET, {
+    algorithm: 'HS256',
     expiresIn: '7d',
   });
 
@@ -42,7 +46,9 @@ export function generateTokens(payload: UserPayload) {
 }
 
 export function verifyRefreshToken(token: string): { userId: string } {
-  const decoded = jwt.verify(token, EFFECTIVE_JWT_REFRESH_SECRET) as { userId: string; type: string };
+  const decoded = jwt.verify(token, EFFECTIVE_JWT_REFRESH_SECRET, {
+    algorithms: ['HS256'],
+  }) as { userId: string; type: string };
   if (decoded.type !== 'refresh') {
     throw new Error('Token de atualização inválido');
   }
@@ -57,7 +63,9 @@ export const authenticate = async (request: FastifyRequest, reply: FastifyReply)
     }
 
     const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, EFFECTIVE_JWT_SECRET) as UserPayload & { type: string };
+    const decoded = jwt.verify(token, EFFECTIVE_JWT_SECRET, {
+      algorithms: ['HS256'],
+    }) as UserPayload & { type: string };
 
     if (decoded.type !== 'access') {
       return reply.status(401).send({ error: 'Token inválido' });

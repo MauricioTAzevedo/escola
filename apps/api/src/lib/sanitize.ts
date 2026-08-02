@@ -1,27 +1,19 @@
 import { z } from 'zod';
+import sanitizeHtml from 'sanitize-html';
 
 /**
- * Utility functions for input sanitization to protect against XSS and script injection.
+ * Utility functions for input sanitization using sanitize-html to protect against XSS.
  */
 export function sanitizeString(text: string): string {
   if (!text) return '';
-  let prev = '';
-  let current = text;
 
-  // Loop to handle nested/recursive bypass attempts (e.g. <scr<script>ipt>)
-  while (current !== prev) {
-    prev = current;
-    current = current
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
-      .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
-      .replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, '')
-      .replace(/<svg\b[^<]*(?:(?!<\/svg>)<[^<]*)*<\/svg>/gi, '')
-      .replace(/\bon\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
-      .replace(/(?:javascript|vbscript|data):/gi, '');
-  }
-
-  return current.trim();
+  return sanitizeHtml(text, {
+    allowedTags: ['b', 'i', 'em', 'strong', 'code', 'pre', 'p', 'br', 'ul', 'ol', 'li', 'sub', 'sup', 'span'],
+    allowedAttributes: {
+      '*': ['class', 'style'],
+    },
+    allowedSchemes: ['http', 'https'],
+  }).trim();
 }
 
 /**

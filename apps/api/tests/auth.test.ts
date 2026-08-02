@@ -67,8 +67,7 @@ describe('Auth API Integration Tests', () => {
       .get('/health')
       .set('Origin', 'http://malicious-attacker-site.com');
 
-    expect(res.status).toBe(500);
-    expect(res.body.error).toBeDefined();
+    expect(res.headers['access-control-allow-origin']).toBeUndefined();
   });
 
   it('Sanitizes error responses and omits stack traces in non-dev environment', async () => {

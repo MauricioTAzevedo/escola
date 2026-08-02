@@ -58,11 +58,13 @@ export async function questionRoutes(fastify: FastifyInstance) {
   // GET /api/questions?subjectId=...&kcId=...
   fastify.get('/', { preHandler: [authenticate] }, async (request, reply) => {
     const { subjectId, kcId } = request.query as { subjectId?: string; kcId?: string };
+    const isStaff = request.user?.role === 'TEACHER' || request.user?.role === 'ADMIN';
 
     const questions = await prisma.question.findMany({
       where: {
         ...(subjectId ? { subjectId } : {}),
         ...(kcId ? { kcId } : {}),
+        ...(!isStaff ? { isApproved: true } : {}),
       },
       include: {
         kc: { select: { id: true, name: true } },
@@ -79,8 +81,8 @@ export async function questionRoutes(fastify: FastifyInstance) {
       type: q.type,
       difficulty: q.difficulty,
       options: q.optionsJson ? JSON.parse(q.optionsJson) : undefined,
-      correctAnswer: q.correctAnswer,
-      explanation: q.explanation || undefined,
+      correctAnswer: isStaff ? q.correctAnswer : undefined,
+      explanation: isStaff ? (q.explanation || undefined) : undefined,
       imageUrl: q.imageUrl || undefined,
       isAiGenerated: q.isAiGenerated,
       isApproved: q.isApproved,
@@ -100,6 +102,17 @@ export async function questionRoutes(fastify: FastifyInstance) {
     }
 
     const { options, ...data } = parseResult.data;
+
+    const subject = await prisma.subject.findUnique({ where: { id: data.subjectId } });
+    if (!subject) {
+      return reply.status(404).send({ error: 'Disciplina não encontrada' });
+    }
+
+    if (request.user?.role !== 'ADMIN' && subject.teacherId !== request.user?.userId) {
+      return reply
+        .status(403)
+        .send({ error: 'Acesso negado. Você não é o proprietário desta disciplina.' });
+    }
 
     const question = await prisma.question.create({
       data: {
@@ -180,11 +193,11 @@ export async function questionRoutes(fastify: FastifyInstance) {
           .send({ error: 'Acesso negado. Você não é o proprietário desta disciplina.' });
       }
 
-      // 1. Delete dependent attempt records first to satisfy foreign key constraints
-      await prisma.attempt.deleteMany({ where: { questionId: id } });
-
-      // 2. Delete question
-      await prisma.question.delete({ where: { id } });
+      // Transactional delete of attempts and question
+      await prisma.$transaction([
+        prisma.attempt.deleteMany({ where: { questionId: id } }),
+        prisma.question.delete({ where: { id } }),
+      ]);
 
       return reply.send({ message: 'Questão removida com sucesso' });
     }

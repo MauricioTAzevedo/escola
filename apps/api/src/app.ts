@@ -13,12 +13,19 @@ import { adminRoutes } from './routes/admin';
 export function buildApp() {
   const app = Fastify({
     logger: process.env.NODE_ENV === 'test' ? false : { level: process.env.LOG_LEVEL || 'info' },
+    trustProxy: true,
   });
 
-  // 1. Security Headers (CSP, X-Frame-Options, HSTS, X-Content-Type-Options)
+  // 1. Security Headers (CSP, X-Frame-Options, HSTS, X-Content-Type-Options, etc.)
   app.register(helmet, {
     contentSecurityPolicy: process.env.NODE_ENV === 'production',
     crossOriginEmbedderPolicy: false,
+  });
+
+  // Additional custom security response headers
+  app.addHook('onSend', async (_request, reply) => {
+    reply.header('X-XSS-Protection', '1; mode=block');
+    reply.header('X-Permitted-Cross-Domain-Policies', 'none');
   });
 
   // 2. CORS Configuration (Restrict allowed origins)
@@ -33,19 +40,19 @@ export function buildApp() {
 
   app.register(cors, {
     origin: (origin, cb) => {
-      // Allow requests with no origin (like mobile apps, curl, or same-origin) or matching whitelist
+      // Allow requests matching whitelist or no origin (like same-origin / server-to-server)
       if (!origin || allowedOrigins.includes(origin)) {
         cb(null, true);
         return;
       }
-      cb(new Error('Origem não permitida por CORS'), false);
+      cb(null, false);
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
 
-  // 3. Global Rate Limiting (Prevent API abuse / DoS)
+  // 3. Global Rate Limiting (Prevent API abuse / DoS behind reverse proxy)
   app.register(rateLimit, {
     max: 120,
     timeWindow: '1 minute',
@@ -71,8 +78,6 @@ export function buildApp() {
 
   // 4. Secure Error Handler (Sanitize internal details & stack traces)
   app.setErrorHandler((error: any, _request, reply) => {
-    console.error('API Error:', error);
-
     const statusCode = error.statusCode || 500;
     const isDev = process.env.NODE_ENV === 'development';
 

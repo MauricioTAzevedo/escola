@@ -312,7 +312,9 @@ Você é um especialista em elaboração de avaliações educacionais para exame
 Responda sempre em português do Brasil (pt-BR).
 
 Texto de referência fornecido pelo professor:
-"${rawText}"
+<user_content>
+${rawText}
+</user_content>
 
 DIRETRIZES DE DIFICULDADE (Dificuldade Solicitada: "${difficulty}"):
 - Se "EASY" (Fácil): Questão de fixação direta de 1 passo.
@@ -354,7 +356,7 @@ Responda exclusivamente no formato JSON (sem nenhum texto explicativo adicional 
       return validated.questions;
     } catch (err: any) {
       console.error('⚠️ Gemini generateQuestionsFromContent failed:', err);
-      throw new Error(`Falha ao gerar questões via IA: ${err.message || 'Erro no modelo'}`);
+      throw new Error('Falha ao gerar questões via IA');
     }
   }
 
