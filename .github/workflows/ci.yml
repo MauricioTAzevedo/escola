@@ -10,6 +10,26 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: escola_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/escola_test?schema=public"
+      JWT_SECRET: "88fd230f399c1d7cae6b95894aa9de0fba3dac863b508ee0"
+      JWT_REFRESH_SECRET: "3b7f7ff76160c11c7d3e9f8b11f16b312c0b9bb2101646cd"
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -42,6 +62,14 @@ jobs:
 
       - name: Run Build
         run: pnpm build
+
+      - name: Prepare Database Schema
+        run: pnpm --filter @escola/api exec prisma db push
+
+      - name: Seed Test Database
+        run: pnpm --filter @escola/api exec tsx prisma/seed.ts
+        env:
+          NODE_ENV: development
 
       - name: Run Tests
         run: pnpm test
