@@ -305,7 +305,9 @@ Responda no formato JSON:
         {
           statement: `Questão de exemplo sobre ${kcName}`,
           type: 'MULTIPLE_CHOICE',
-          difficulty: difficulty || 'MEDIUM',
+          difficulty: (['EASY', 'MEDIUM', 'HARD'].includes(difficulty)
+            ? (difficulty as 'EASY' | 'MEDIUM' | 'HARD')
+            : 'MEDIUM'),
           options: [
             { id: 'opt1', text: 'Opção A' },
             { id: 'opt2', text: 'Opção B' },
@@ -318,7 +320,9 @@ Responda no formato JSON:
         {
           statement: `Questão 2 de exemplo sobre ${kcName}`,
           type: 'MULTIPLE_CHOICE',
-          difficulty: difficulty || 'MEDIUM',
+          difficulty: (['EASY', 'MEDIUM', 'HARD'].includes(difficulty)
+            ? (difficulty as 'EASY' | 'MEDIUM' | 'HARD')
+            : 'MEDIUM'),
           options: [
             { id: 'opt1', text: 'Opção 1' },
             { id: 'opt2', text: 'Opção 2' },
