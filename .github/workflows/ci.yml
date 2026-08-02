@@ -15,7 +15,7 @@ jobs:
       JWT_SECRET: "ci-only-32-char-secret-0123456789abcdef"
       JWT_REFRESH_SECRET: "ci-only-refresh-32-char-secret-0123456789"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v4
         with:
