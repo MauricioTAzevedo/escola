@@ -37,10 +37,14 @@ export function generateTokens(payload: UserPayload) {
     expiresIn: '1h',
   });
 
-  const refreshToken = jwt.sign({ userId: payload.userId, type: 'refresh' }, EFFECTIVE_JWT_REFRESH_SECRET, {
-    algorithm: 'HS256',
-    expiresIn: '7d',
-  });
+  const refreshToken = jwt.sign(
+    { userId: payload.userId, type: 'refresh', jti: crypto.randomUUID() },
+    EFFECTIVE_JWT_REFRESH_SECRET,
+    {
+      algorithm: 'HS256',
+      expiresIn: '7d',
+    }
+  );
 
   return { accessToken, refreshToken };
 }
