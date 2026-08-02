@@ -17,3 +17,10 @@ build/
 .idea/
 .DS_Store
 Thumbs.db
+
+# AI Agent Workspaces & Planning
+.opencode/
+.planning/
+coverage/
+*.log
+
