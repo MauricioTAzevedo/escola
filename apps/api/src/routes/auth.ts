@@ -79,13 +79,17 @@ export async function authRoutes(fastify: FastifyInstance) {
 
     const tokens = generateTokens(userPayload);
 
-    await prisma.refreshToken.create({
-      data: {
-        userId: user.id,
-        tokenHash: hashToken(tokens.refreshToken),
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      },
-    });
+    try {
+      await prisma.refreshToken.create({
+        data: {
+          userId: user.id,
+          tokenHash: hashToken(tokens.refreshToken),
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        },
+      });
+    } catch (tokenErr) {
+      request.log.error(tokenErr, 'Falha ao armazenar refresh token no banco');
+    }
 
     return reply.status(201).send({
       user: {
@@ -140,6 +144,7 @@ export async function authRoutes(fastify: FastifyInstance) {
 
       const tokens = generateTokens(userPayload);
 
+    try {
       await prisma.refreshToken.create({
         data: {
           userId: user.id,
@@ -147,6 +152,9 @@ export async function authRoutes(fastify: FastifyInstance) {
           expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         },
       });
+    } catch (tokenErr) {
+      request.log.error(tokenErr, 'Falha ao armazenar refresh token no banco');
+    }
 
       return reply.send({
         user: {
